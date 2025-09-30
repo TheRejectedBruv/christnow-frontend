@@ -1,0 +1,35 @@
+<!-- sign-in.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign In - ChristNow</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">
+      <img src="images/logo-c.png" alt="ChristNow Logo" />
+    </div>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="courses.html">Courses</a>
+      <a href="testimonials.html">Testimonials</a>
+      <a href="sign-in.html" id="sign-in-link">Sign In</a>
+    </nav>
+  </header>
+  <main class="form-container">
+    <h1>Sign In to ChristNow</h1>
+    <form id="signin-form">
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit">Sign In</button>
+    </form>
+    <p>Don't have an account? <a href="sign-up.html">Sign Up</a></p>
+    <p id="login-message" class="response-message"></p>
+  </main>
+  <script src="sign-in.js"></script>
+</body>
+</html>

@@ -1,0 +1,897 @@
+/* ====== Reset & Base Styles ====== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+}
+body {
+  background: #fff;
+  color: #333;
+  font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+}
+
+/* ====== Navbar ====== */
+.navbar {
+  background: #7B1FA2;
+  padding: 10px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 75px;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  height: 80px;
+  width: 80px;
+  position: relative;
+}
+.logo img {
+  height: 60px;
+  width: auto;
+  transform: scale(1.3);
+  transform-origin: center;
+  transition: transform 0.3s;
+  position: relative;
+}
+.nav-links {
+  text-align: center;
+}
+.nav-links a {
+  color: #fff;
+  margin-left: 20px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+.nav-links a:hover {
+  color: #FFD700;
+}
+
+/* ====== Home, Welcome, Verse ====== */
+.home h1 {
+  text-align: center;
+  margin-top: 34px;
+  margin-bottom: 8px;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #181818;
+}
+.verse, .verse-ref {
+  text-align: center;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 4px;
+}
+.verse {
+  color: #9b7edc;
+}
+.verse-ref {
+  color: #c0a6f5;
+}
+
+/* ====== Courses Section ====== */
+.courses {
+  margin-bottom: 30px;
+}
+.courses h2 {
+  color: #673ab7;
+  font-size: 1.17em;
+  margin-bottom: 16px;
+  margin-top: 0;
+  font-weight: bold;
+  text-align: center;
+}
+.course-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 40px;
+  padding: 50px 0;
+}
+.course-card {
+  background: #f4f4f4;
+  border: 1.5px solid #e0dbef;
+  border-radius: 18px;
+  box-shadow: 0 0 14px rgba(0, 0, 0, 0.07);
+  width: 320px;
+  padding: 28px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 10px;
+  min-height: 390px;
+}
+.course-card img {
+  width: 190px;
+  height: 140px;
+  border-radius: 10px;
+  object-fit: cover;
+  margin-bottom: 18px;
+  background: #fff;
+  border: 1px solid #dedede;
+}
+.course-card h3 {
+  font-size: 1.23rem;
+  font-weight: 700;
+  color: #543386;
+  margin-bottom: 8px;
+}
+.course-card p {
+  font-size: 1rem;
+  color: #565656;
+  margin-bottom: 18px;
+  min-height: 45px;
+}
+.course-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  width: 100%;
+}
+.start-course-btn, .course-card button {
+  background: #7B1FA2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 11px 24px;
+  font-size: 1rem;
+  transition: background 0.2s;
+  width: 180px;
+}
+.start-course-btn:hover, .course-card button:hover {
+  background: #5e1587;
+}
+.view-course-link {
+  color: #7B1FA2;
+  background: none;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 1rem;
+  text-decoration: underline;
+  display: block;
+  width: 180px;
+  text-align: center;
+  margin-top: 0;
+  padding: 0;
+}
+.view-course-link:hover {
+  color: #543386;
+  text-decoration: underline;
+}
+
+/* ====== Sign In Section ====== */
+section.login {
+  margin: 0 auto;
+  margin-top: 28px;
+  max-width: 350px;
+  text-align: center;
+}
+section.login h2 {
+  margin-bottom: 14px;
+  color: #673ab7;
+  font-size: 1.08em;
+  font-weight: bold;
+}
+section.login form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+section.login label {
+  margin-right: 4px;
+  font-size: 1em;
+}
+section.login input[type="text"],
+section.login input[type="password"] {
+  padding: 6px 10px;
+  border-radius: 5px;
+  border: 1px solid #bbb;
+  font-size: 1em;
+  width: 175px;
+}
+section.login button[type="submit"] {
+  margin-top: 8px;
+  font-size: 1em;
+  background: #673ab7;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 22px;
+  cursor: pointer;
+}
+section.login button[type="submit"]:hover {
+  background: #7c5ed6;
+}
+#loginStatus {
+  color: red;
+  margin-top: 6px;
+}
+
+/* ====== Responsive Design ====== */
+@media (max-width: 850px) {
+  .course-list {
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    padding: 30px 0;
+  }
+  .course-card {
+    width: 95%;
+    min-width: 230px;
+    max-width: 400px;
+  }
+}
+@media (max-width: 650px) {
+  .home { padding: 15px 5px; }
+  .course-card { width: 98%; }
+}
+
+/* ====== Lessons/Lesson Sidebar (for lessons.html) ====== */
+#course-layout {
+  display: flex;
+  min-height: 100vh;
+}
+#lesson-sidebar {
+  width: 250px;
+  background: #f0e9ff;
+  padding: 30px 10px 30px 20px;
+  border-right: 2px solid #e5d1ff;
+}
+#lesson-sidebar h3 {
+  margin-top: 0;
+  font-size: 1.25em;
+  color: #673ab7;
+}
+#lesson-list {
+  list-style: none;
+  padding: 0;
+}
+#lesson-list li {
+  padding: 12px 15px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  font-size: 1em;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  transition: background 0.18s;
+}
+#lesson-list li.active {
+  background: #c7b5fa;
+  font-weight: bold;
+  color: #36297c;
+}
+#lesson-list li.completed {
+  background: #e0ffe0;
+  color: #0b6300;
+}
+#lesson-list li.locked {
+  background: #eee;
+  color: #aaa;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+#lesson-list li span {
+  flex: 1;
+}
+#lesson-main {
+  flex: 1;
+  padding: 40px;
+}
+#progress {
+  font-weight: bold;
+  margin-bottom: 18px;
+}
+.lesson-card.completed {
+  background: #e0ffe0;
+  border: 1.5px solid #a8e0a8;
+}
+textarea {
+  width: 98%;
+  min-height: 50px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 7px;
+  font-size: 1em;
+}
+button:disabled {
+  background: #bbb;
+  color: #444;
+  cursor: default;
+}
+
+/* === Sign In Page Overrides (add at END of styles.css) === */
+.form-container {
+  max-width: 410px;
+  margin: 70px auto 0 auto;
+  background: #fff;
+  border-radius: 13px;
+  box-shadow: 0 2px 18px rgba(123,31,162,0.09);
+  padding: 44px 38px 30px 38px;
+  text-align: center;
+}
+
+.form-container h1 {
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #2c164e;
+  margin-bottom: 35px;
+  letter-spacing: -0.7px;
+}
+
+#signin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+#signin-form input[type="email"],
+#signin-form input[type="password"] {
+  font-size: 1.09em;
+  padding: 14px 16px;
+  border: 1.5px solid #e1d5ef;
+  border-radius: 8px;
+  background: #faf8fd;
+  outline: none;
+  margin-bottom: 0;
+  transition: border 0.17s;
+  width: 100%;
+}
+
+#signin-form input:focus {
+  border-color: #7B1FA2;
+}
+
+#signin-form button {
+  background: #7B1FA2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 15px 0;
+  font-size: 1.15em;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 7px;
+  transition: background 0.19s;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(123,31,162,0.05);
+}
+
+#signin-form button:hover {
+  background: #5e1587;
+}
+
+.form-container p {
+  color: #444;
+  font-size: 1em;
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+.form-container a {
+  color: #7B1FA2;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.16s;
+}
+.form-container a:hover {
+  text-decoration: underline;
+  color: #54226c;
+}
+
+.response-message {
+  color: #B71C1C;
+  font-size: 1em;
+  margin-top: 7px;
+}
+
+/* Responsive for mobile */
+@media (max-width: 600px) {
+  .form-container {
+    max-width: 98vw;
+    padding: 22px 3vw;
+  }
+  .navbar {
+    flex-direction: column;
+    height: auto;
+    padding: 12px 3vw;
+  }
+}
+
+/* === Make Sign Up Page EXACTLY Like Sign In === */
+#signup-form,
+#signin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+#signup-form input,
+#signin-form input {
+  font-size: 1.09em;
+  padding: 14px 16px;
+  border: 1.5px solid #e1d5ef;
+  border-radius: 8px;
+  background: #faf8fd;
+  outline: none;
+  margin-bottom: 0;
+  transition: border 0.17s;
+  width: 100%;
+}
+
+#signup-form input:focus,
+#signin-form input:focus {
+  border-color: #7B1FA2;
+}
+
+#signup-form button,
+#signin-form button {
+  background: #7B1FA2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 15px 0;
+  font-size: 1.15em;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 7px;
+  transition: background 0.19s;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(123,31,162,0.05);
+}
+
+#signup-form button:hover,
+#signin-form button:hover {
+  background: #5e1587;
+}
+
+.form-container h1 {
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #2c164e;
+  margin-bottom: 35px;
+  letter-spacing: -0.7px;
+}
+
+.form-container p {
+  color: #444;
+  font-size: 1em;
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+.form-container a {
+  color: #7B1FA2;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.16s;
+}
+.form-container a:hover {
+  text-decoration: underline;
+  color: #54226c;
+}
+
+.response-message {
+  color: #B71C1C;
+  font-size: 1em;
+  margin-top: 7px;
+}
+
+.form-container {
+  max-width: 410px;
+  margin: 70px auto 0 auto;
+  background: #fff;
+  border-radius: 13px;
+  box-shadow: 0 2px 18px rgba(123,31,162,0.09);
+  padding: 44px 38px 30px 38px;
+  text-align: center;
+}
+
+/* ===== HOMEPAGE (index.html) CENTERED LAYOUT ===== */
+
+/* Main section centered vertically and horizontally */
+.home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;   /* push content toward center */
+  width: 100%;
+}
+
+/* Welcome header */
+.home h1,
+h1.welcome-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #7B1FA2;
+  text-align: center;
+  margin-top: 55px;
+  margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+
+/* Bible verse styling */
+.verse {
+  color: #8881ad;
+  font-size: 1.11rem;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.verse-ref {
+  color: #b3a1e4;
+  font-size: 1.06rem;
+  text-align: center;
+  margin-bottom: 0;
+}
+
+/* Remove excess margins if needed */
+body, main {
+  margin: 0;
+  padding: 0;
+  background: #fff;
+}
+
+/* ===== FORCE HOMEPAGE TO LOOK EXACTLY LIKE YOUR SCREENSHOT ===== */
+body, html {
+  background: #fff !important;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+.home {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  width: 100%;
+}
+
+.home h1,
+h1.welcome-title {
+  font-size: 2.3rem !important;
+  font-weight: 700 !important;
+  color: #7B1FA2 !important;
+  text-align: center !important;
+  margin-top: 90px !important;
+  margin-bottom: 18px !important;
+  letter-spacing: -0.5px;
+}
+
+.verse {
+  color: #9687be !important;
+  font-size: 1.12rem !important;
+  text-align: center !important;
+  margin-bottom: 4px !important;
+}
+
+.verse-ref {
+  color: #bbaae5 !important;
+  font-size: 1.06rem !important;
+  text-align: center !important;
+  margin-bottom: 0 !important;
+}
+
+/* Remove course section, sign in, etc. for minimalist look */
+
+/* Remove extra space if any */
+main.home {
+  padding: 0 !important;
+  margin: 0 auto !important;
+  box-shadow: none !important;
+  background: none !important;
+}
+
+/* === NAVBAR LINKS: match button font & roundness, NOT size === */
+.nav-links a {
+  font-family: 'Poppins', 'Segoe UI', Arial, sans-serif !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  border-radius: 8px !important;   /* makes corners a little more rounded */
+  background: transparent !important;
+  letter-spacing: 0.5px !important;
+  /* Do NOT change padding, size, or margins! */
+}
+
+.nav-links a:hover {
+  color: #FFD700;
+}
+
+.nav-links a {
+  color: #fff !important;
+  font-family: 'Poppins', 'Segoe UI', Arial, sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 1.07rem !important;
+  letter-spacing: 0.01em;
+  transition: color 0.25s cubic-bezier(0.55, 0, 0.1, 1) !important;
+  padding: 0 4px;
+  margin-left: 10px;
+  line-height: 75px;
+  display: inline-block;
+}
+
+.nav-links a:hover {
+  color: #FFD700 !important; /* This is gold/yellow */
+}
+
+.testimonials-section {
+  max-width: 700px;
+  margin: 60px auto 0 auto;
+  padding: 0 18px;
+}
+
+.testimonials-title {
+  font-size: 2rem;
+  color: #7B1FA2;
+  text-align: center;
+  margin-bottom: 30px;
+  font-family: 'Poppins', Arial, sans-serif;
+  font-weight: 700;
+}
+
+.testimonials-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.testimonial-card {
+  background: #faf6ff;
+  border: 1.5px solid #e1d5ef;
+  border-radius: 13px;
+  padding: 26px 30px 18px 30px;
+  box-shadow: 0 2px 10px rgba(123,31,162,0.05);
+  transition: box-shadow 0.2s;
+}
+
+.testimonial-card:hover {
+  box-shadow: 0 4px 20px rgba(123,31,162,0.09);
+}
+
+.testimonial-text {
+  font-size: 1.08rem;
+  color: #444;
+  font-style: italic;
+  margin-bottom: 13px;
+  font-family: 'Poppins', Arial, sans-serif;
+}
+
+.testimonial-author {
+  text-align: right;
+  color: #7B1FA2;
+  font-weight: 600;
+  font-size: 1rem;
+  font-family: 'Poppins', Arial, sans-serif;
+}
+
+/* === FORCE NAVBAR BUTTONS TO LOOK IDENTICAL ON ALL PAGES === */
+.nav-links a {
+  color: #fff !important;
+  font-family: 'Poppins', 'Segoe UI', Arial, sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 1.07rem !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  letter-spacing: 0.01em !important;
+  transition: color 0.25s cubic-bezier(0.55, 0, 0.1, 1) !important;
+  padding: 0 4px !important;
+  margin-left: 10px !important;
+  line-height: 75px !important;
+  display: inline-block !important;
+  text-decoration: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+.nav-links a:hover {
+  color: #FFD700 !important;
+}
+
+
+.course-card {
+  background: #f4f4f4;
+  border: 1.5px solid #e0dbef;
+  border-radius: 18px;
+  box-shadow: 0 0 14px rgba(0, 0, 0, 0.07);
+  width: 320px;
+  padding: 28px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 10px;
+  min-height: 390px;
+}
+.course-card img {
+  width: 190px;
+  height: 140px;
+  border-radius: 10px;
+  object-fit: cover;
+  margin-bottom: 18px;
+  background: #fff;
+  border: 1px solid #dedede;
+}
+.course-details-wrapper {
+  max-width: 550px;
+  margin: 45px auto 55px auto;
+  padding: 28px 18px 38px 18px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 3px 18px rgba(123,31,162,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#course-content h1.course-title {
+  font-size: 2.1rem;
+  color: #7B1FA2;
+  text-align: center;
+  font-weight: 700;
+  margin-bottom: 13px;
+}
+
+#course-content img.course-image {
+  margin: 0 auto 18px auto;
+  display: block;
+  max-width: 320px;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(123,31,162,0.07);
+}
+
+#course-content p.course-description {
+  font-size: 1.13rem;
+  color: #444;
+  margin: 18px 0 16px 0;
+  text-align: center;
+}
+
+.course-detail-card {
+  background: #fff;
+  max-width: 520px;
+  margin: 48px auto 0 auto;
+  border-radius: 16px;
+  box-shadow: 0 4px 28px rgba(123,31,162,0.10);
+  padding: 38px 34px 30px 34px;
+  text-align: center;
+}
+.course-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #7B1FA2;
+  margin-bottom: 10px;
+}
+.course-image {
+  display: block;
+  margin: 0 auto 18px auto;
+  max-width: 215px;
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(80,60,120,0.08);
+}
+.course-price {
+  font-weight: 600;
+  color: #673ab7;
+  margin-bottom: 7px;
+  font-size: 1.12rem;
+}
+.old-price {
+  text-decoration: line-through;
+  color: #b3a1e4;
+  margin-right: 6px;
+}
+.free-label {
+  color: #0baf82;
+  font-weight: 700;
+  margin-left: 6px;
+  font-size: 1.01em;
+}
+.course-description {
+  color: #444;
+  font-size: 1.11rem;
+  margin-bottom: 18px;
+}
+.course-features {
+  list-style: disc inside;
+  text-align: left;
+  margin: 0 auto 18px auto;
+  padding-left: 0;
+  max-width: 320px;
+  color: #533387;
+  font-size: 1em;
+}
+.section-title {
+  color: #7B1FA2;
+  margin-top: 25px;
+  margin-bottom: 7px;
+  font-size: 1.15em;
+  text-align: left;
+}
+.lessons {
+  text-align: left;
+  margin: 0 auto 18px auto;
+  max-width: 320px;
+  color: #433265;
+  font-size: 1em;
+  padding-left: 18px;
+}
+.instructor-info {
+  margin: 0 auto 18px auto;
+  text-align: left;
+  max-width: 340px;
+  background: #f8f7fb;
+  padding: 15px 17px;
+  border-radius: 7px;
+}
+.instructor-info h3 {
+  color: #543386;
+  font-size: 1.09em;
+  margin-bottom: 4px;
+}
+.start-button {
+  margin: 25px 0 16px 0;
+  background: #7B1FA2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.09em;
+  font-weight: 600;
+  padding: 13px 45px;
+  cursor: pointer;
+  transition: background 0.19s;
+}
+.start-button:hover { background: #543386; }
+.faq h3 { margin: 0 0 3px 0; color: #543386; font-size: 1.01em;}
+.faq p { margin: 0 0 10px 0; color: #636363; font-size: 0.99em;}
+@media (max-width: 700px) {
+  .course-detail-card { padding: 14px 4vw 18px 4vw; }
+}
+
+#lesson-content button {
+  background: #7B1FA2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 11px 24px;
+  font-size: 1rem;
+  margin: 4px 7px 8px 0;
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(123,31,162,0.06);
+  display: inline-block;
+}
+
+#lesson-content button:hover {
+  background: #5e1587;
+  color: #FFD700;
+}
+
+@media (max-width: 600px) {
+  /* Only affect the "Sign In" link in mobile nav */
+  #sign-in-link {
+    margin-top: -19px;  /* Move "Sign In" up a little */
+    /* You can tweak -10px: try -8px or -12px to get it perfect! */
+  }
+}

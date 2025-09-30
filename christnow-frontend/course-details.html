@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Course Details</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">
+      <img src="images/logo-c.png" alt="ChristNow Logo" />
+    </div>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="courses.html">Courses</a>
+      <a href="testimonials.html">Testimonials</a>
+      <a href="sign-in.html" id="sign-in-link">Sign In</a>
+    </nav>
+  </header>
+
+  <main style="background: #f8f7fb; min-height: 100vh;">
+    <div class="course-detail-card">
+      <!-- Title & Image -->
+      <h1 class="course-title">Course Title</h1>
+    
+
+      <!-- Price -->
+      <p class="course-price">
+        <span class="old-price"></span>
+        <span class="free-label"></span>
+      </p>
+
+      <!-- Description -->
+      <p class="course-description"></p>
+
+      <!-- Features (still static, you can expand if needed) -->
+      <ul class="course-features">
+        <li>Video Lessons</li>
+        <li>Guided Reflections</li>
+        <li>Lifetime Access</li>
+      </ul>
+
+      <!-- Lessons (dynamic list from JS) -->
+      <h2 class="section-title">Course Lessons</h2>
+      <ol class="lessons"></ol>
+
+      <!-- Instructor -->
+      <h2 class="section-title">Meet Your Instructor</h2>
+      <div class="instructor-info">
+        <h3>Daniel Mishoe</h3>
+        <p>Daniel is the founder of ChristNow and is passionate about helping people grow in their faith...</p>
+      </div>
+
+      <!-- Action Button -->
+      <button class="start-button" id="start-course-btn">Start Course</button>
+
+      <!-- FAQ -->
+      <h2 class="section-title">Frequently Asked Questions</h2>
+      <div class="faq">
+        <h3>Is this course really free?</h3>
+        <p>Yes! You can choose any 3 courses on ChristNow to take for free — no strings attached.</p>
+      </div>
+      <div class="faq">
+        <h3>How long do I have access to the course?</h3>
+        <p>Once you start a course, you’ll have lifetime access to it — take it at your own pace.</p>
+      </div>
+      <div class="faq">
+        <h3>Can I share the course with someone else?</h3>
+        <p>Courses are for personal use only. Encourage friends to sign up for their own free access.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+     <script src="https://js.stripe.com/v3/"></script>
+  <script src="course-details.js" defer></script>
+</body>
+</html>
