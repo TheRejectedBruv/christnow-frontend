@@ -59,7 +59,7 @@ async function markLessonComplete(lessonId) {
   const completed = getCompleted();
   if (!completed.includes(lessonId)) {
     try {
-      await fetch(`http://localhost:8085/lessons/${lessonId}/complete`, {
+      await fetch(`/api/lessons/${lessonId}/complete`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -78,7 +78,7 @@ async function markLessonComplete(lessonId) {
 async function saveReflection(lessonId) {
   const reflectionText = document.getElementById('reflection').value;
   try {
-    await fetch(`http://localhost:8085/lessons/${lessonId}/reflection`, {
+    await fetch(`/api/${lessonId}/reflection`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -190,7 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  fetch(`http://localhost:8085/lessons/by-course/${courseId}`, {
+  fetch(`/api/lessons/by-course/${courseId}`, {
     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
   })
     .then(res => res.json())

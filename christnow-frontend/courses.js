@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     // Fetch all courses
-    const res = await fetch("http://localhost:8085/courses");
+    const res = await fetch("/api/courses");
     if (!res.ok) throw new Error("Failed to load courses");
     const courses = await res.json();
 
@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const token = localStorage.getItem("token");
     let user = null;
     if (token) {
-      const ures = await fetch("http://localhost:8085/users/profile", {
+      const ures = await fetch("/api/users/profile", {
         headers: { Authorization: "Bearer " + token }
       }).catch(() => null);
       if (ures && ures.ok) user = await ures.json();
