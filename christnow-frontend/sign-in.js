@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     try {
-      const res = await fetch("https://christnow-backend-777aa5f9a483.herokuapp.com/users/login", {
+      const res = await fetch("/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
