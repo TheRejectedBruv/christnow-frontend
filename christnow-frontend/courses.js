@@ -1,72 +1,150 @@
 console.log("[Courses] script loaded");
 
+const FREE_PICK_LIMIT = 3;
+const API_BASE = "/api";
+
+function normalizeId(x) {
+  if (x == null) return "";
+  return String(x).trim();
+}
+
+function idInList(id, list) {
+  return (Array.isArray(list) ? list : []).map(normalizeId).includes(normalizeId(id));
+}
+
+function getButtonLabel(course, user) {
+  if (!user) {
+    return "Sign In to Access";
+  }
+
+  const ownedIds = user.ownedCourseIds || [];
+  const freeIds = user.freeCourseIds || [];
+
+  if (idInList(course.id, ownedIds) || idInList(course.id, freeIds)) {
+    return "You Own This Course";
+  }
+
+  if (freeIds.length < FREE_PICK_LIMIT) {
+    return "Add as Free";
+  }
+
+  return "Buy Course";
+}
+
+function getButtonClass(label) {
+  if (label === "Add as Free") return "add-free-btn";
+  if (label === "Buy Course") return "buy-btn";
+  if (label === "Sign In to Access") return "sign-in-btn";
+  return "owned-btn";
+}
+
+function updateFreeCounter(freeCounter, user) {
+  if (!freeCounter || !user) return;
+  const freeCount = Array.isArray(user.freeCourseIds) ? user.freeCourseIds.length : 0;
+  const remaining = FREE_PICK_LIMIT - freeCount;
+  if (remaining > 0) {
+    freeCounter.textContent = `You have ${remaining} free course${remaining === 1 ? "" : "s"} remaining`;
+    freeCounter.style.display = "block";
+  } else {
+    freeCounter.textContent = "";
+    freeCounter.style.display = "none";
+  }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   const list = document.getElementById("course-list");
   if (!list) return;
 
   try {
-    // Fetch all courses
-    const res = await fetch("/api/courses");
+    const res = await fetch("https://christnow-backend-777aa5f9a483.herokuapp.com/courses");
     if (!res.ok) throw new Error("Failed to load courses");
     const courses = await res.json();
 
-    // Optional: check user profile
     const token = localStorage.getItem("token");
     let user = null;
     if (token) {
-      const ures = await fetch("/api/users/profile", {
+      const ures = await fetch("https://christnow-backend-777aa5f9a483.herokuapp.com/api/users/profile", {
         headers: { Authorization: "Bearer " + token }
       }).catch(() => null);
       if (ures && ures.ok) user = await ures.json();
+      updateFreeCounter(document.getElementById("free-counter"), user);
     }
 
-    // Clear old content
     list.innerHTML = "";
 
-    // Render each course card
     courses.forEach(course => {
       const card = document.createElement("div");
       card.className = "course-card";
 
       const buttonLabel = getButtonLabel(course, user);
+      const buttonClass = getButtonClass(buttonLabel);
+      const disabled = buttonLabel === "You Own This Course" ? "disabled" : "";
 
       card.innerHTML = `
-        <h2>${course.title}</h2>
-        <p>${course.description || ""}</p>
-        <button class="course-btn">${buttonLabel}</button>
-        <a href="course-details.html?id=${course.id}">View Course</a>
-      `;
+  <h3>${course.title}</h3>
+  <p>${course.description || ""}</p>
+  <div class="course-buttons">
+    <button class="${buttonClass}" ${disabled}
+      data-course-id="${course.id}"
+      data-course-title="${(course.title || "").replace(/"/g, "&quot;")}"
+      data-course-price="${course.price ?? 0}">${buttonLabel}</button>
+    <a href="course-details.html?id=${course.id}" class="view-course-link">View Course</a>
+  </div>
+`;
 
       list.appendChild(card);
     });
 
+    document.querySelectorAll(".sign-in-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        window.location.href = "sign-in.html";
+      });
+    });
+
+    document.querySelectorAll(".add-free-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (!user || !user.email || !token) {
+          window.location.href = "sign-in.html";
+          return;
+        }
+        const courseId = btn.getAttribute("data-course-id");
+        try {
+          const res = await fetch(
+            `${API_BASE}/users/${encodeURIComponent(user.email)}/free-courses/${courseId}`,
+            {
+              method: "POST",
+              headers: { Authorization: "Bearer " + token },
+            }
+          );
+          if (res.ok) {
+            alert("Added");
+            window.location.reload();
+          } else {
+            alert("Error: " + (await res.text()));
+          }
+        } catch (err) {
+          alert("Could not add free course.");
+        }
+      });
+    });
+
+    document.querySelectorAll(".buy-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        try {
+          await startCourseCheckout({
+            courseId: btn.getAttribute("data-course-id"),
+            courseTitle: btn.getAttribute("data-course-title"),
+            coursePrice: btn.getAttribute("data-course-price"),
+            token,
+            apiBase: API_BASE,
+          });
+        } catch (err) {
+          alert(err.message || "Could not start checkout.");
+        }
+      });
+    });
   } catch (err) {
     console.error("Error loading courses:", err);
     list.innerHTML = "<p>Failed to load courses.</p>";
   }
 });
-
-function getButtonLabel(course, user) {
-  // If course has a price → always show "Buy Course"
-  if (course.price > 0) {
-    return "Buy Course";
-  }
-
-  // If course is free and user hasn’t claimed 3 yet
-  if (course.free && (!user || (user.freeCourses?.length || 0) < 3)) {
-    return "Claim as Free";
-  }
-
-  // Already owned
-  if (user && (user.ownedCourses?.includes(course.id) || user.freeCourses?.includes(course.id))) {
-    return "You Own This Course";
-  }
-
-  // Not signed in → prompt
-  if (!user) {
-    return "Sign In to Access";
-  }
-
-  // Fallback
-  return "Unavailable";
-}

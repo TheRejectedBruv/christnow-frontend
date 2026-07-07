@@ -2,11 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Payment Cancelled</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>❌ Payment Cancelled</h1>
-  <p>Your checkout was cancelled. You can try again anytime.</p>
-  <a href="courses.html">Back to Courses</a>
+  <main style="max-width: 600px; margin: 80px auto; padding: 0 20px; text-align: center;">
+    <h1>Payment Cancelled</h1>
+    <p>Your checkout was cancelled. You can try again anytime.</p>
+    <p id="course-link-wrap" style="display: none;">
+      <a id="course-link" href="courses.html">Back to course</a>
+    </p>
+    <p><a href="courses.html">Browse all courses</a></p>
+  </main>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const courseId = params.get("courseId");
+    if (courseId) {
+      const wrap = document.getElementById("course-link-wrap");
+      const link = document.getElementById("course-link");
+      link.href = `course-details.html?id=${encodeURIComponent(courseId)}`;
+      wrap.style.display = "block";
+    }
+  </script>
 </body>
 </html>

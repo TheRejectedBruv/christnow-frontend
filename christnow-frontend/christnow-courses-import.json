@@ -1,0 +1,50 @@
+[
+  {
+    "title": "Faith Course",
+    "description": "Real faith isn't blind. Learn how to build a faith that actually holds.",
+    "difficulty": "Beginner",
+    "free": false,
+    "price": 14.99,
+    "lessons": [
+      { "title": "Faith is More Than Positivity", "videoUrl": "https://vimeo.com/1117435333", "lessonOrder": 1 },
+      { "title": "Faith Is Rooted in God's Character", "videoUrl": "https://vimeo.com/1117530184", "lessonOrder": 2 },
+      { "title": "When Faith Feels Silent", "videoUrl": "https://vimeo.com/1118441115", "lessonOrder": 3 },
+      { "title": "Staying Rooted in a Shifting World", "videoUrl": "https://vimeo.com/1118791269", "lessonOrder": 4 },
+      { "title": "How to Strengthen Your Faith During Trials", "videoUrl": "https://vimeo.com/1119268394", "lessonOrder": 5 },
+      { "title": "Trusting God When the Path Isn't Clear", "videoUrl": "https://vimeo.com/1119649118", "lessonOrder": 6 },
+      { "title": "Faith That Endures in the Waiting", "videoUrl": "https://vimeo.com/1119649379", "lessonOrder": 7 },
+      { "title": "Living Faith Every Day — Not Just on Sundays", "videoUrl": "https://vimeo.com/1119649778", "lessonOrder": 8 }
+    ]
+  },
+  {
+    "title": "Prayer Course",
+    "description": "Most people pray when things go wrong. But prayer was never meant to be a last resort. Discover what it actually means to talk to God and how to make it the most important part of your day.",
+    "difficulty": "Beginner",
+    "free": false,
+    "price": 14.99,
+    "lessons": [
+      { "title": "Why We Pray: The Heart Behind Prayer", "videoUrl": "https://vimeo.com/1116025691", "lessonOrder": 1 },
+      { "title": "How to Pray Simply and Effectively", "videoUrl": "https://vimeo.com/1116207225", "lessonOrder": 2 },
+      { "title": "When God Seems Silent", "videoUrl": "https://vimeo.com/1116314876", "lessonOrder": 3 },
+      { "title": "Making Prayer a Daily Habit", "videoUrl": "https://vimeo.com/1116327418", "lessonOrder": 4 },
+      { "title": "Praying Through Struggles and Doubt", "videoUrl": "https://vimeo.com/1116482004", "lessonOrder": 5 },
+      { "title": "The Power Of Interceding For Others", "videoUrl": "https://vimeo.com/1116946795", "lessonOrder": 6 },
+      { "title": "Living a Prayer-Filled Life", "videoUrl": "https://vimeo.com/1116960714", "lessonOrder": 7 }
+    ]
+  },
+  {
+    "title": "Temptation Course",
+    "description": "Everyone faces it. Few know how to actually beat it. This is an honest look at temptation, why it's so hard to resist, and what it takes to stand firm when it matters most.",
+    "difficulty": "Beginner",
+    "free": false,
+    "price": 14.99,
+    "lessons": [
+      { "title": "The Battle Within: Understanding Temptation", "videoUrl": "https://vimeo.com/1121034668", "lessonOrder": 1 },
+      { "title": "Watch and Pray: Staying Alert to the Enemy's Traps", "videoUrl": "https://vimeo.com/1121034950", "lessonOrder": 2 },
+      { "title": "Using Wisdom To Find A Way Out", "videoUrl": "https://vimeo.com/1165818587", "lessonOrder": 3 },
+      { "title": "The Bible Is Our Sword & Shield", "videoUrl": "https://vimeo.com/1183588106", "lessonOrder": 4 },
+      { "title": "Breaking the Cycle: When You Keep Falling", "videoUrl": "https://vimeo.com/1190334066", "lessonOrder": 5 },
+      { "title": "Breaking Free From Temptation's Grip", "videoUrl": "https://vimeo.com/1190334820", "lessonOrder": 6 }
+    ]
+  }
+]

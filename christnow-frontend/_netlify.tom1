@@ -1,5 +1,0 @@
-[[redirects]]
-  from = "/api/*"
-  to = "https://christnow-backend-777aa5f9a483.herokuapp.com/api/:splat"
-  status = 200
-  force = true

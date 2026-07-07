@@ -1,14 +1,76 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Payment Successful</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>✅ Payment Successful!</h1>
-  <p>Thank you for purchasing this course. It’s now available in your account.</p>
-  <a href="courses.html">Go to My Courses</a>
+  <main style="max-width: 640px; margin: 80px auto; padding: 0 20px; text-align: center;">
+    <h1>Payment Successful</h1>
+    <p id="status">Finalizing your purchase...</p>
+    <p id="course-link-wrap" style="display: none;">
+      <a id="course-link" href="courses.html">Go to your course</a>
+    </p>
+    <p><a href="courses.html">Browse all courses</a></p>
+  </main>
+  <script>
+    (async function () {
+      const params = new URLSearchParams(window.location.search);
+      const courseId = params.get("courseId");
+      const sessionId = params.get("session_id");
+      const statusEl = document.getElementById("status");
+      const wrap = document.getElementById("course-link-wrap");
+      const link = document.getElementById("course-link");
+      const token = localStorage.getItem("token");
+
+      if (courseId) {
+        link.href = `course-details.html?id=${encodeURIComponent(courseId)}`;
+        link.textContent = "Go to your course";
+      }
+
+      if (!sessionId) {
+        statusEl.textContent = "Payment received, but Stripe session info was missing from the return URL.";
+        if (courseId) wrap.style.display = "block";
+        return;
+      }
+
+      if (!courseId) {
+        statusEl.textContent = "Payment received, but course info was missing from the return URL.";
+        return;
+      }
+
+      if (!token) {
+        statusEl.textContent = "Payment received. Sign in again, then reopen this success page from your browser history.";
+        if (courseId) wrap.style.display = "block";
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/payment/complete-purchase", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + token,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ sessionId, courseId }),
+        });
+
+        const text = await res.text();
+        if (!res.ok) {
+          statusEl.textContent = text || ("Unlock failed with HTTP " + res.status);
+          if (courseId) wrap.style.display = "block";
+          return;
+        }
+
+        statusEl.textContent = "Your course is now available in your account.";
+        if (courseId) wrap.style.display = "block";
+      } catch (err) {
+        statusEl.textContent = "Payment received, but the unlock request failed to reach the server.";
+        if (courseId) wrap.style.display = "block";
+      }
+    })();
+  </script>
 </body>
 </html>
-

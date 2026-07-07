@@ -111,6 +111,12 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
 
+  function idInList(id, list) {
+    const norm = normalizeId(id);
+    return (Array.isArray(list) ? list : []).map(normalizeId).includes(norm);
+  }
+
+
   // ---------- load course ----------
   clearErrorOnPage();
   setButton("Loading…", true, null);
@@ -201,7 +207,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     } else {
       lessons.forEach((lesson, index) => {
         const li = document.createElement("li");
-        li.textContent = `${index + 1}. ${lesson.title || "Lesson"}`;
+       li.innerHTML = `<a href="lessons.html?courseId=${course.id}" style="text-decoration:none; color:inherit; cursor:pointer;">${lesson.title || "Lesson"}</a>`;
         lessonsListEl.appendChild(li);
       });
     }
@@ -213,16 +219,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 
   function setLoggedOutButton() {
-    // If course is free, don’t say “Buy”
-    if (course.free) {
-      setButton("Sign In to Start", false, function () {
-        window.location.href = "sign-in.html";
-      });
-    } else {
-      setButton("Sign In to Buy", false, function () {
-        window.location.href = "sign-in.html";
-      });
-    }
+    setButton("Sign In to Start", false, function () {
+      window.location.href = "sign-in.html";
+    });
   }
 
 
@@ -285,17 +284,18 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 
   // ---------- compute ownership ----------
-  const ownedCourses = Array.isArray(userProfile.ownedCourses) ? userProfile.ownedCourses : [];
-  const freeCourses = Array.isArray(userProfile.freeCourses) ? userProfile.freeCourses : [];
+  const ownedIds = Array.isArray(userProfile.ownedCourseIds) ? userProfile.ownedCourseIds : [];
+  const freeIds = Array.isArray(userProfile.freeCourseIds) ? userProfile.freeCourseIds : [];
 
 
-  const courseIdNorm = normalizeId(course.id);
-  const ownsThis =
-    ownedCourses.map(normalizeId).includes(courseIdNorm) ||
-    freeCourses.map(normalizeId).includes(courseIdNorm);
+  const ownsThis = idInList(course.id, ownedIds) || idInList(course.id, freeIds);
+  const hasFreeSlot = !ownsThis && freeIds.length < 3;
+  const remainingFreePicks = 3 - freeIds.length;
 
 
-  const hasFreeSlot = !!course.free && !ownsThis && freeCourses.length < 3;
+  if (hasFreeSlot && freeLabelEl) {
+    freeLabelEl.textContent = `Use 1 of your ${remainingFreePicks} free pick${remainingFreePicks === 1 ? "" : "s"}`;
+  }
 
 
   // ---------- decide button state ----------
@@ -356,7 +356,18 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 
   // Not owned, not a free-slot case => buy path
-  setButton("Buy Course", false, function () {
-    alert("Buying soon.");
+  setButton("Buy Course", false, async function () {
+    clearErrorOnPage();
+    try {
+      await startCourseCheckout({
+        courseId: course.id,
+        courseTitle: course.title,
+        coursePrice: course.price,
+        token,
+        apiBase: API_BASE,
+      });
+    } catch (err) {
+      showErrorOnPage(err.message || "Could not start checkout.");
+    }
   });
 });

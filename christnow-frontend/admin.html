@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - ChristNow</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Scoped admin styles - won't affect other pages */
+    .admin-wrap {
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 0 20px;
+      font-family: inherit;
+    }
+    .admin-wrap h1 { margin-bottom: 8px; }
+    .admin-wrap .subtitle { color: #666; margin-bottom: 32px; }
+    .admin-card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .admin-card h2 { margin-top: 0; margin-bottom: 16px; }
+    .form-row { display: flex; flex-direction: column; margin-bottom: 14px; }
+    .form-row label { font-weight: 600; margin-bottom: 6px; }
+    .form-row input[type="text"],
+    .form-row input[type="number"],
+    .form-row input[type="url"],
+    .form-row textarea,
+    .form-row select {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+      font-family: inherit;
+    }
+    .form-row textarea { min-height: 80px; resize: vertical; }
+    .form-row.inline { flex-direction: row; align-items: center; gap: 8px; }
+    .form-row.inline label { margin-bottom: 0; }
+    .admin-btn {
+      background: #2c5aa0;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .admin-btn:hover { background: #234a85; }
+    .status { margin-top: 12px; font-size: 14px; min-height: 20px; }
+    .status.ok { color: #2e7d32; }
+    .status.err { color: #c62828; }
+    .course-list-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .course-list-item:last-child { border-bottom: none; }
+    .course-list-item .meta { color: #666; font-size: 13px; }
+    .empty-state { color: #999; font-style: italic; padding: 12px 0; }
+    .admin-btn.secondary { background: #555; margin-left: 8px; }
+    .admin-btn.secondary:hover { background: #333; }
+    .admin-btn.danger { background: #b71c1c; margin-left: 8px; padding: 8px 14px; font-size: 13px; }
+    .admin-btn.danger:hover { background: #8e0000; }
+    .import-help { font-size: 13px; color: #666; margin-bottom: 12px; line-height: 1.5; }
+    .import-help code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+    .import-results { margin-top: 12px; font-size: 13px; max-height: 200px; overflow-y: auto; background: #f9f9f9; border-radius: 6px; padding: 10px; }
+    .import-results li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="admin-wrap">
+    <h1>Admin Panel</h1>
+    <p class="subtitle">Manage courses at scale — upload a spreadsheet or JSON backup. Signed in as <span id="admin-email">loading...</span>.</p>
+
+    <div class="admin-card">
+      <h2>Bulk Import (CSV or JSON)</h2>
+      <p class="import-help">
+        Upload a file from your computer — nothing is stored in the website code.<br>
+        <strong>CSV columns:</strong>
+        <code>course_title,course_description,price,free,difficulty,image_url,lesson_title,video_url,lesson_order</code><br>
+        One row per lesson; repeat course info on each row. <code>free</code> = true/false or yes/no.
+      </p>
+      <div class="form-row">
+        <label for="import-file">Choose CSV or JSON file</label>
+        <input id="import-file" type="file" accept=".csv,.json,text/csv,application/json">
+      </div>
+      <div class="form-row inline">
+        <input id="skip-duplicates" type="checkbox" checked>
+        <label for="skip-duplicates">Skip courses that already exist (by title)</label>
+      </div>
+      <button type="button" id="import-btn" class="admin-btn">Import Courses</button>
+      <button type="button" id="export-btn" class="admin-btn secondary">Download Backup (JSON)</button>
+      <div id="import-status" class="status"></div>
+      <ul id="import-results" class="import-results" style="display:none;"></ul>
+    </div>
+
+    <div class="admin-card">
+      <h2>Add a Course</h2>
+      <form id="course-form">
+        <div class="form-row">
+          <label for="c-title">Title</label>
+          <input id="c-title" name="title" type="text" required>
+        </div>
+        <div class="form-row">
+          <label for="c-desc">Description</label>
+          <textarea id="c-desc" name="description"></textarea>
+        </div>
+        <div class="form-row">
+          <label for="c-price">Price (USD, use 0 for free)</label>
+          <input id="c-price" name="price" type="number" step="0.01" value="0">
+        </div>
+        <div class="form-row inline">
+          <input id="c-free" name="free" type="checkbox">
+          <label for="c-free">Mark as Free</label>
+        </div>
+        <button type="submit" class="admin-btn">Create Course</button>
+        <div id="course-status" class="status"></div>
+      </form>
+    </div>
+
+    <div class="admin-card">
+      <h2>Add a Lesson</h2>
+      <form id="lesson-form">
+        <div class="form-row">
+          <label for="l-course">Course</label>
+          <select id="l-course" name="courseId" required>
+            <option value="">— Select a course —</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="l-title">Lesson Title</label>
+          <input id="l-title" name="title" type="text" required>
+        </div>
+        <div class="form-row">
+          <label for="l-video">Vimeo URL</label>
+          <input id="l-video" name="videoUrl" type="url" placeholder="https://vimeo.com/..." required>
+        </div>
+        <div class="form-row">
+          <label for="l-order">Lesson Order (1, 2, 3...)</label>
+          <input id="l-order" name="lessonOrder" type="number" min="1" value="1" required>
+        </div>
+        <button type="submit" class="admin-btn">Create Lesson</button>
+        <div id="lesson-status" class="status"></div>
+      </form>
+    </div>
+
+    <div class="admin-card">
+      <h2>Existing Courses</h2>
+      <div id="course-list"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "https://christnow-backend-777aa5f9a483.herokuapp.com";
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      window.location.href = "sign-in.html?next=admin.html";
+    }
+
+    let isAdmin = false;
+    let coursesEmpty = false;
+
+    (async () => {
+      try {
+        const [profileRes, coursesRes] = await Promise.all([
+          fetch(`${API_BASE}/api/users/profile`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          fetch(`${API_BASE}/courses`)
+        ]);
+
+        let profile = null;
+        if (profileRes.ok) {
+          profile = await profileRes.json();
+          document.getElementById("admin-email").textContent = profile.email || "(unknown)";
+        } else {
+          document.getElementById("admin-email").textContent = "(profile load failed)";
+        }
+
+        if (coursesRes.ok) {
+          const courses = await coursesRes.json();
+          coursesEmpty = Array.isArray(courses) && courses.length === 0;
+        }
+
+        isAdmin = profile?.admin === true;
+        const canAccess = isAdmin || coursesEmpty;
+
+        if (!canAccess) {
+          document.querySelector(".admin-wrap").innerHTML =
+            `<h1>Access Denied</h1><p>This page is for site administrators only.</p>` +
+            `<p>Set <strong>CHRISTNOW_ADMIN_EMAIL</strong> on Heroku to your exact sign-in email: ` +
+            `<strong>${profile?.email || "unknown"}</strong></p>` +
+            `<p><a href="index.html">Return to home</a></p>`;
+          return;
+        }
+
+        if (coursesEmpty && !isAdmin) {
+          const subtitle = document.querySelector(".subtitle");
+          if (subtitle) {
+            subtitle.textContent =
+              `Bootstrap mode — database is empty, so any signed-in user can import once. Signed in as ${profile?.email || "unknown"}.`;
+          }
+        }
+      } catch (e) {
+        document.getElementById("admin-email").textContent = "(profile load failed)";
+        document.querySelector(".admin-wrap").innerHTML =
+          `<h1>Access Denied</h1><p>Could not verify your account.</p>`;
+        return;
+      }
+
+      initAdminPanel();
+    })();
+
+    function initAdminPanel() {
+    const courseForm = document.getElementById("course-form");
+    const courseStatus = document.getElementById("course-status");
+
+    courseForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      courseStatus.className = "status";
+      courseStatus.textContent = "Creating...";
+
+      const fd = new FormData(courseForm);
+      const body = {
+        title: fd.get("title"),
+        description: fd.get("description") || "",
+        price: parseFloat(fd.get("price")) || 0,
+        free: fd.get("free") === "on"
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/courses`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const created = await res.json();
+        courseStatus.className = "status ok";
+        courseStatus.textContent = `Created: "${created.title}" (id ${created.id})`;
+        courseForm.reset();
+        loadCourses();
+      } catch (err) {
+        courseStatus.className = "status err";
+        courseStatus.textContent = `Error: ${err.message}`;
+      }
+    });
+
+    const lessonForm = document.getElementById("lesson-form");
+    const lessonStatus = document.getElementById("lesson-status");
+
+    lessonForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      lessonStatus.className = "status";
+      lessonStatus.textContent = "Creating...";
+
+      const fd = new FormData(lessonForm);
+      const body = {
+        title: fd.get("title"),
+        course: { id: parseInt(fd.get("courseId"), 10) },
+        videoUrl: fd.get("videoUrl"),
+        lessonOrder: parseInt(fd.get("lessonOrder"), 10)
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/lessons`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const created = await res.json();
+        lessonStatus.className = "status ok";
+        lessonStatus.textContent = `Created: "${created.title}" (lesson ${created.lessonOrder} of course ${body.course.id})`;
+        lessonForm.reset();
+        document.getElementById("l-order").value = 1;
+      } catch (err) {
+        lessonStatus.className = "status err";
+        lessonStatus.textContent = `Error: ${err.message}`;
+      }
+    });
+
+    function parseBool(val) {
+      if (val == null || val === "") return false;
+      const s = String(val).trim().toLowerCase();
+      return s === "true" || s === "yes" || s === "1" || s === "y";
+    }
+
+    function parseCsvLine(line) {
+      const out = [];
+      let cur = "";
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
+          else inQuotes = !inQuotes;
+        } else if (ch === "," && !inQuotes) {
+          out.push(cur); cur = "";
+        } else cur += ch;
+      }
+      out.push(cur);
+      return out.map(s => s.trim());
+    }
+
+    function csvToCourses(text) {
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      if (lines.length < 2) throw new Error("CSV needs a header row and at least one data row.");
+      const headers = parseCsvLine(lines[0]).map(h => h.toLowerCase().replace(/\s+/g, "_"));
+      const idx = name => headers.indexOf(name);
+      const titleIdx = idx("course_title");
+      if (titleIdx === -1) throw new Error('Missing column "course_title".');
+
+      const map = new Map();
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseCsvLine(lines[i]);
+        const title = cols[titleIdx];
+        if (!title) continue;
+
+        if (!map.has(title)) {
+          map.set(title, {
+            title,
+            description: cols[idx("course_description")] || "",
+            price: parseFloat(cols[idx("price")]) || 0,
+            free: parseBool(cols[idx("free")]),
+            difficulty: cols[idx("difficulty")] || "",
+            imageUrl: cols[idx("image_url")] || "",
+            lessons: []
+          });
+        }
+
+        const lessonTitle = cols[idx("lesson_title")];
+        if (lessonTitle) {
+          map.get(title).lessons.push({
+            title: lessonTitle,
+            videoUrl: cols[idx("video_url")] || "",
+            lessonOrder: parseInt(cols[idx("lesson_order")], 10) || map.get(title).lessons.length + 1,
+            content: ""
+          });
+        }
+      }
+      return Array.from(map.values());
+    }
+
+    document.getElementById("import-btn").addEventListener("click", async () => {
+      const fileInput = document.getElementById("import-file");
+      const status = document.getElementById("import-status");
+      const resultsEl = document.getElementById("import-results");
+      const skipDuplicates = document.getElementById("skip-duplicates").checked;
+
+      if (!fileInput.files.length) {
+        status.className = "status err";
+        status.textContent = "Choose a CSV or JSON file first.";
+        return;
+      }
+
+      status.className = "status";
+      status.textContent = "Reading file...";
+      resultsEl.style.display = "none";
+      resultsEl.innerHTML = "";
+
+      try {
+        const file = fileInput.files[0];
+        const text = await file.text();
+        let courses;
+
+        if (file.name.endsWith(".json") || text.trim().startsWith("[")) {
+          courses = JSON.parse(text);
+          if (!Array.isArray(courses)) throw new Error("JSON must be an array of courses.");
+        } else {
+          courses = csvToCourses(text);
+        }
+
+        if (!courses.length) throw new Error("No courses found in file.");
+
+        status.textContent = `Importing ${courses.length} course(s)...`;
+        const res = await fetch(
+          `${API_BASE}/courses/import?skipDuplicates=${skipDuplicates}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(courses)
+          }
+        );
+
+        if (!res.ok) {
+          const errText = await res.text();
+          if (res.status === 404) {
+            throw new Error(
+              "Import endpoint not found (404). The Heroku backend must be redeployed with the latest code " +
+              "that includes /courses/import."
+            );
+          }
+          if (res.status === 403) {
+            throw new Error(
+              "403 Forbidden — signed in as " + (document.getElementById("admin-email").textContent || "unknown") + ". " +
+              "Set CHRISTNOW_ADMIN_EMAIL on Heroku to that exact email, or import while the database is empty."
+            );
+          }
+          throw new Error(`HTTP ${res.status}: ${errText.slice(0, 200)}`);
+        }
+
+        const result = await res.json();
+        status.className = "status ok";
+        status.textContent = `Done — ${result.created} created, ${result.updated} updated, ${result.skipped} skipped.`;
+
+        if (result.messages && result.messages.length) {
+          resultsEl.innerHTML = result.messages.map(m => `<li>${m}</li>`).join("");
+          resultsEl.style.display = "block";
+        }
+
+        loadCourses();
+      } catch (err) {
+        status.className = "status err";
+        status.textContent = `Import failed: ${err.message}`;
+      }
+    });
+
+    document.getElementById("export-btn").addEventListener("click", async () => {
+      const status = document.getElementById("import-status");
+      status.className = "status";
+      status.textContent = "Downloading backup...";
+
+      try {
+        const res = await fetch(`${API_BASE}/courses/export`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `christnow-courses-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        status.className = "status ok";
+        status.textContent = `Exported ${data.length} course(s).`;
+      } catch (err) {
+        status.className = "status err";
+        status.textContent = `Export failed: ${err.message}`;
+      }
+    });
+
+    async function loadCourses() {
+      const list = document.getElementById("course-list");
+      const select = document.getElementById("l-course");
+      try {
+        const res = await fetch(`${API_BASE}/courses`);
+        const courses = await res.json();
+
+        if (courses.length === 0) {
+          list.innerHTML = `<p class="empty-state">No courses yet. Add one above.</p>`;
+        } else {
+          list.innerHTML = courses.map(c => `
+            <div class="course-list-item">
+              <div><strong>${c.title}</strong> <span class="meta">(id ${c.id})</span></div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="meta">${c.free ? "Free" : "$" + (c.price || 0)}</div>
+                <button type="button" class="admin-btn danger delete-course-btn" data-course-id="${c.id}" data-course-title="${(c.title || "").replace(/"/g, "&quot;")}">Delete</button>
+              </div>
+            </div>
+          `).join("");
+
+          list.querySelectorAll(".delete-course-btn").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+              const courseId = btn.getAttribute("data-course-id");
+              const courseTitle = btn.getAttribute("data-course-title") || "this course";
+              if (!confirm(`Delete "${courseTitle}"? This cannot be undone.`)) return;
+
+              btn.disabled = true;
+              try {
+                const res = await fetch(`${API_BASE}/courses/${courseId}`, {
+                  method: "DELETE",
+                  headers: { Authorization: `Bearer ${token}` }
+                });
+                if (!res.ok) {
+                  const msg = await res.text();
+                  throw new Error(msg || `HTTP ${res.status}`);
+                }
+                loadCourses();
+              } catch (err) {
+                alert(`Delete failed: ${err.message}`);
+                btn.disabled = false;
+              }
+            });
+          });
+        }
+
+        const current = select.value;
+        select.innerHTML = `<option value="">— Select a course —</option>` +
+          courses.map(c => `<option value="${c.id}">${c.title}</option>`).join("");
+        if (current) select.value = current;
+      } catch (err) {
+        list.innerHTML = `<p class="status err">Failed to load: ${err.message}</p>`;
+      }
+    }
+
+    loadCourses();
+    }
+  </script>
+</body>
+</html>
+

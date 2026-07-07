@@ -59,7 +59,7 @@ async function markLessonComplete(lessonId) {
   const completed = getCompleted();
   if (!completed.includes(lessonId)) {
     try {
-      await fetch(`/api/lessons/${lessonId}/complete`, {
+      await fetch(`https://christnow-backend-777aa5f9a483.herokuapp.com/lessons/${lessonId}/complete`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -77,20 +77,52 @@ async function markLessonComplete(lessonId) {
 
 async function saveReflection(lessonId) {
   const reflectionText = document.getElementById('reflection').value;
+  const status = document.getElementById('reflection-status');
   try {
-    await fetch(`/api/${lessonId}/reflection`, {
+    await fetch(`https://christnow-backend-777aa5f9a483.herokuapp.com/lessons/${lessonId}/reflection`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'text/plain'
       },
-      body: JSON.stringify({ text: reflectionText })
+      body: reflectionText
     });
-    alert('Reflection saved!');
+    if (status) {
+      status.textContent = '✓ Saved';
+      status.className = 'status-success';
+      setTimeout(() => { status.textContent = ''; status.className = ''; }, 3000);
+    }
   } catch (err) {
     console.error('Error saving reflection', err);
+    if (status) {
+      status.textContent = 'Could not save. Try again.';
+      status.className = 'status-error';
+    }
   }
 }
+
+
+
+async function loadReflection(lessonId) {
+  try {
+    const res = await fetch(`https://christnow-backend-777aa5f9a483.herokuapp.com/lessons/${lessonId}/reflection`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    const text = await res.text();
+    const box = document.getElementById('reflection');
+    if (box) {
+      box.value = text || '';
+    }
+  } catch (err) {
+    console.error('Error loading reflection', err);
+  }
+}
+
+
+
+
 
 // ---------- Tracking ----------
 function clearTracking() {
@@ -147,13 +179,24 @@ function showLesson(index) {
   content.innerHTML = `
     <h2>${lesson.title}</h2>
     <div id="video-host"></div>
-    <textarea id="reflection" placeholder="Write your reflection here">${savedReflection}</textarea>
-    <br/>
-    <button id="save-reflection-btn">Save Reflection</button>
     <button id="mark-complete-btn" disabled>Mark as Complete</button>
+       <div class="reflection-section">
+      <h3>Your Reflection</h3>
+      <textarea id="reflection" rows="6" placeholder="Write your private reflection on this lesson..."></textarea>
+      <div>
+        <button id="save-reflection-btn">Save Reflection</button>
+        <span id="reflection-status"></span>
+      </div>
+    </div>
   `;
 
+  document.getElementById('mark-complete-btn').onclick = () => markLessonComplete(lesson.id);
   document.getElementById('save-reflection-btn').onclick = () => saveReflection(lesson.id);
+  loadReflection(lesson.id);
+
+
+
+  
   document.getElementById('mark-complete-btn').onclick = () => markLessonComplete(lesson.id);
 
   const host = document.getElementById('video-host');
@@ -178,20 +221,63 @@ function showLesson(index) {
 }
 
 // ---------- Init ----------
-document.addEventListener("DOMContentLoaded", () => {
+const API_BASE = "https://christnow-backend-777aa5f9a483.herokuapp.com";
+
+function normalizeId(x) {
+  if (x == null) return "";
+  return String(x).trim();
+}
+
+function idInList(id, list) {
+  return (Array.isArray(list) ? list : []).map(normalizeId).includes(normalizeId(id));
+}
+
+async function userOwnsCourse(courseId, token) {
+  const res = await fetch(`${API_BASE}/api/users/profile`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) return false;
+  const profile = await res.json();
+  const ownedIds = profile.ownedCourseIds || [];
+  const freeIds = profile.freeCourseIds || [];
+  return idInList(courseId, ownedIds) || idInList(courseId, freeIds);
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const courseId = params.get('courseId');
+  const lessonContent = document.getElementById('lesson-content');
 
   localStorage.removeItem('completedLessons');
 
   if (!courseId) {
-    document.getElementById('lesson-content').innerHTML =
-      "<p style='color:red;'>No course selected.</p>";
+    if (lessonContent) {
+      lessonContent.innerHTML = "<p style='color:red;'>No course selected.</p>";
+    }
     return;
   }
 
-  fetch(`/api/lessons/by-course/${courseId}`, {
-    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  const token = localStorage.getItem('token');
+  if (!token) {
+    if (lessonContent) {
+      lessonContent.innerHTML =
+        "<p style='color:red;'>Please <a href='sign-in.html'>sign in</a> to view lessons.</p>";
+    }
+    return;
+  }
+
+  const owns = await userOwnsCourse(courseId, token);
+  if (!owns) {
+    if (lessonContent) {
+      lessonContent.innerHTML =
+        `<p style='color:red;'>You need to own this course first. ` +
+        `<a href='course-details.html?id=${encodeURIComponent(courseId)}'>Go to course page</a></p>`;
+    }
+    return;
+  }
+
+  fetch(`${API_BASE}/lessons/by-course/${courseId}`, {
+    headers: { 'Authorization': `Bearer ${token}` }
   })
     .then(res => res.json())
     .then(lessons => {
@@ -199,14 +285,14 @@ document.addEventListener("DOMContentLoaded", () => {
       renderSidebar();
       if (lessonsData.length > 0) {
         showLesson(0);
-      } else {
-        document.getElementById('lesson-content').innerHTML =
-          "<p>No lessons found.</p>";
+      } else if (lessonContent) {
+        lessonContent.innerHTML = "<p>No lessons found.</p>";
       }
     })
     .catch(err => {
       console.error(err);
-      document.getElementById('lesson-content').innerHTML =
-        "<p style='color:red;'>Could not load lessons.</p>";
+      if (lessonContent) {
+        lessonContent.innerHTML = "<p style='color:red;'>Could not load lessons.</p>";
+      }
     });
 });

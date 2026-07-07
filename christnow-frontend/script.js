@@ -1,9 +1,9 @@
-/* global Stripe */
+/* global startCourseCheckout */
 document.addEventListener("DOMContentLoaded", async function () {
   console.log("HOMEPAGE: script loaded");
 
 
-  const API_BASE = "/api";
+  const API_BASE = "https://christnow-backend-777aa5f9a483.herokuapp.com";
 
 
   const courseList = document.querySelector(".course-list");
@@ -38,22 +38,37 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 
   if (token) {
+    if (token.toLowerCase().startsWith("bearer ")) {
+      token = token.slice(7).trim();
+      localStorage.setItem("token", token);
+    }
     try {
-      const res = await fetch(`${API_BASE}/users/profile`, {
+      const res = await fetch(`${API_BASE}/api/users/profile`, {
         method: "GET",
         headers: { Authorization: "Bearer " + token },
       });
 
-     if (token && token.toLowerCase().startsWith("bearer ")) {
-  token = token.slice(7).trim();
-}
-
-      console.log("HOMEPAGE: /users/profile status =", res.status);
+      console.log("HOMEPAGE: /api/users/profile status =", res.status);
 
 
       if (res.ok) {
         userProfile = await res.json();
         console.log("HOMEPAGE: userProfile =", userProfile);
+        // Show free counter if logged in
+        const freeCounter = document.getElementById("free-counter");
+        if (freeCounter && userProfile) {
+          const freeCount = Array.isArray(userProfile.freeCourseIds) ? userProfile.freeCourseIds.length : 0;
+          const remaining = 3 - freeCount;
+          if (remaining > 0) {
+            freeCounter.textContent = `You have ${remaining} free course${remaining === 1 ? "" : "s"} remaining`;
+            freeCounter.style.display = "block";
+          } else {
+            freeCounter.textContent = "";
+            freeCounter.style.display = "none";
+          }
+        }
+
+
       } else {
         console.log("HOMEPAGE: profile failed, clearing token");
         localStorage.removeItem("token");
@@ -71,7 +86,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // ---------------- COURSES ----------------
   let courses = [];
   try {
-    const res = await fetch(`${API_BASE}/courses`);
+    const res = await fetch(`https://christnow-backend-777aa5f9a483.herokuapp.com/courses`);
     console.log("HOMEPAGE: /courses status =", res.status);
 
 
@@ -89,6 +104,16 @@ document.addEventListener("DOMContentLoaded", async function () {
   courseList.innerHTML = "";
 
 
+  function normalizeId(x) {
+    if (x == null) return "";
+    return String(x).trim();
+  }
+
+  function idInList(id, list) {
+    return (Array.isArray(list) ? list : []).map(normalizeId).includes(normalizeId(id));
+  }
+
+
   courses.forEach((course) => {
     let actionBtnHtml = "";
 
@@ -97,17 +122,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (!userProfile) {
       actionBtnHtml = `<button class="sign-in-btn">Sign In to Access</button>`;
     } else {
-      // Your safe profile response uses these keys:
       const ownedIds = Array.isArray(userProfile.ownedCourseIds) ? userProfile.ownedCourseIds : [];
       const freeIds = Array.isArray(userProfile.freeCourseIds) ? userProfile.freeCourseIds : [];
 
 
-      const ownsThis = ownedIds.includes(course.id) || freeIds.includes(course.id);
-
-
-      // free-slot logic: allow up to 3 free picks IF course.free === true
-      const courseIsFreeEligible = course.free === true;
-      const hasFreeSlot = courseIsFreeEligible && !ownsThis && freeIds.length < 3;
+      const ownsThis = idInList(course.id, ownedIds) || idInList(course.id, freeIds);
+      const hasFreeSlot = !ownsThis && freeIds.length < 3;
 
 
       console.log(
@@ -129,7 +149,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       } else if (hasFreeSlot) {
         actionBtnHtml = `<button class="add-free-btn" data-course-id="${course.id}">Add as Free</button>`;
       } else {
-        actionBtnHtml = `<button class="buy-btn" data-course-id="${course.id}">Buy Course</button>`;
+        actionBtnHtml = `<button class="buy-btn" data-course-id="${course.id}" data-course-title="${course.title.replace(/"/g, "&quot;")}" data-course-price="${course.price}">Buy Course</button>`;
       }
     }
 
@@ -177,7 +197,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       try {
         const res = await fetch(
-          `${API_BASE}/users/${encodeURIComponent(userProfile.email)}/free-courses/${courseId}`,
+          `${API_BASE}/api/users/${encodeURIComponent(userProfile.email)}/free-courses/${courseId}`,
           {
             method: "POST",
             headers: {
@@ -205,32 +225,77 @@ document.addEventListener("DOMContentLoaded", async function () {
   });
 
 
-  // BUY COURSE (placeholder)
+  // BUY COURSE
   document.querySelectorAll(".buy-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      alert("Buying not set up yet.");
+    btn.addEventListener("click", async () => {
+      const courseId = btn.getAttribute("data-course-id");
+      const courseTitle = btn.getAttribute("data-course-title");
+      const coursePrice = btn.getAttribute("data-course-price");
+
+      if (!courseId || !courseTitle) {
+        window.location.href = `course-details.html?id=${encodeURIComponent(courseId || "")}`;
+        return;
+      }
+
+      try {
+        await startCourseCheckout({
+          courseId,
+          courseTitle,
+          coursePrice,
+          token,
+          apiBase: "/api",
+        });
+      } catch (err) {
+        alert(err.message || "Could not start checkout.");
+      }
     });
   });
 });
 
 
 // ---------------- STRIPE CHECKOUT ----------------
-async function checkout(courseName, amount) {
-  const response = await fetch("/api/payments/create-checkout-session", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ courseName, amount }),
-  });
+// See checkout.js
 
 
-  const session = await response.json();
-  const result = await stripe.redirectToCheckout({ sessionId: session.id });
+// === NAV AUTH TOGGLE ===
+function updateNavAuthState() {
+  const token = localStorage.getItem("token");
+  const signInLink = document.getElementById("sign-in-link");
+  const signOutLink = document.getElementById("logout-link");
 
+  console.log("NAV: token present =", !!token);
+  console.log("NAV: signInLink found =", !!signInLink);
+  console.log("NAV: signOutLink found =", !!signOutLink);
 
-  if (result.error) {
-    alert(result.error.message);
+  if (!signInLink || !signOutLink) {
+    console.warn("NAV: missing link elements — check IDs in HTML");
+    return;
+  }
+
+  if (token) {
+    signInLink.style.display = "none";
+    signOutLink.style.display = "inline-block";
+  } else {
+    signInLink.style.display = "inline-block";
+    signOutLink.style.display = "none";
   }
 }
+
+// Run it on every page load
+document.addEventListener("DOMContentLoaded", updateNavAuthState);
+
+// Hook up sign-out click
+document.addEventListener("DOMContentLoaded", () => {
+  const signOutLink = document.getElementById("logout-link");
+  if (signOutLink) {
+    signOutLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("token");
+      window.location.href = "index.html";
+    });
+  }
+});
+
 
 
 

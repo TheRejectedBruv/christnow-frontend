@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Support either form id without touching HTML or CSS
   const form =
     document.getElementById("signin-form") ||
     document.getElementById("sign-in-form");
@@ -20,7 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   function setMessage(text) {
-    // No styling, no classes, no CSS modifications. Only text.
     if (messageEl) messageEl.textContent = text || "";
   }
 
@@ -29,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
 
 
-    const email = (emailInput?.value || "").trim();
+    const email = (emailInput?.value || "").trim().toLowerCase();
     const password = passwordInput?.value || "";
 
 
@@ -43,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     try {
-      const res = await fetch("/api/users/login", {
+      const res = await fetch(`${API_BASE}/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -51,7 +49,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       if (!res.ok) {
-        // Don’t touch CSS. Just show the backend text if available.
         const txt = await res.text();
         setMessage(txt || "Invalid email or password.");
         return;
@@ -70,12 +67,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       localStorage.setItem("token", token);
 
-
-      // Redirect after login (no CSS, no DOM changes)
-      window.location.href = "index.html";
+      const params = new URLSearchParams(window.location.search);
+      const next = params.get("next");
+      window.location.href = next && /^[\w.-]+\.html$/.test(next) ? next : "index.html";
     } catch (err) {
       console.error("SIGN-IN: network error:", err);
       setMessage("Network error. Please try again.");
     }
   });
 });
+
+
