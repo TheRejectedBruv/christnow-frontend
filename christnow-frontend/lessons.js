@@ -4,6 +4,31 @@ let progressTimer = null;
 let vimeoPlayer = null;
 let canMarkComplete = false;
 
+const API_BASE = "/api";
+
+function getToken() {
+  let token = localStorage.getItem("token") || "";
+  if (token.toLowerCase().startsWith("bearer ")) {
+    token = token.slice(7).trim();
+  }
+  return token;
+}
+
+function authHeaders(extra = {}) {
+  const token = getToken();
+  return token
+    ? { Authorization: `Bearer ${token}`, ...extra }
+    : { ...extra };
+}
+
+function reflectionStorageKey(lessonId) {
+  return `reflection_lesson_${lessonId}`;
+}
+
+function reflectionApiUrl(lessonId) {
+  return `${API_BASE}/users/lessons/${lessonId}/reflection`;
+}
+
 // ---------- Storage ----------
 function getCompleted() {
   return JSON.parse(localStorage.getItem('completedLessons') || '[]');
@@ -59,11 +84,9 @@ async function markLessonComplete(lessonId) {
   const completed = getCompleted();
   if (!completed.includes(lessonId)) {
     try {
-      await fetch(`https://christnow-backend-777aa5f9a483.herokuapp.com/lessons/${lessonId}/complete`, {
+      const res = await fetch(`${API_BASE}/lessons/${lessonId}/complete`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        headers: authHeaders()
       });
       completed.push(lessonId);
       setCompleted(completed);
@@ -78,15 +101,24 @@ async function markLessonComplete(lessonId) {
 async function saveReflection(lessonId) {
   const reflectionText = document.getElementById('reflection').value;
   const status = document.getElementById('reflection-status');
+  localStorage.setItem(reflectionStorageKey(lessonId), reflectionText);
+
   try {
-    await fetch(`https://christnow-backend-777aa5f9a483.herokuapp.com/lessons/${lessonId}/reflection`, {
+    const res = await fetch(reflectionApiUrl(lessonId), {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'text/plain'
-      },
+      headers: authHeaders({ 'Content-Type': 'text/plain' }),
       body: reflectionText
     });
+    if (res.status === 401) {
+      if (status) {
+        status.textContent = 'Saved on this device. Sign in again to sync to your account.';
+        status.className = 'status-success';
+      }
+      return;
+    }
+    if (!res.ok) {
+      throw new Error('Save failed with status ' + res.status);
+    }
     if (status) {
       status.textContent = '✓ Saved';
       status.className = 'status-success';
@@ -95,8 +127,8 @@ async function saveReflection(lessonId) {
   } catch (err) {
     console.error('Error saving reflection', err);
     if (status) {
-      status.textContent = 'Could not save. Try again.';
-      status.className = 'status-error';
+      status.textContent = 'Saved on this device.';
+      status.className = 'status-success';
     }
   }
 }
@@ -104,16 +136,25 @@ async function saveReflection(lessonId) {
 
 
 async function loadReflection(lessonId) {
+  const box = document.getElementById('reflection');
+  if (!box) return;
+
+  const savedLocal = localStorage.getItem(reflectionStorageKey(lessonId));
+  if (savedLocal) {
+    box.value = savedLocal;
+  }
+
   try {
-    const res = await fetch(`https://christnow-backend-777aa5f9a483.herokuapp.com/lessons/${lessonId}/reflection`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
+    const res = await fetch(reflectionApiUrl(lessonId), {
+      headers: authHeaders()
     });
+    if (!res.ok) {
+      return;
+    }
     const text = await res.text();
-    const box = document.getElementById('reflection');
-    if (box) {
-      box.value = text || '';
+    if (text) {
+      box.value = text;
+      localStorage.setItem(reflectionStorageKey(lessonId), text);
     }
   } catch (err) {
     console.error('Error loading reflection', err);
@@ -172,7 +213,6 @@ function showLesson(index) {
   const content = document.getElementById('lesson-content');
   if (!content) return;
 
-  const savedReflection = localStorage.getItem('reflection_' + lesson.id) || '';
   const url = (lesson.videoUrl || '').trim();
   const isVimeo = /vimeo\.com/i.test(url);
 
@@ -221,7 +261,6 @@ function showLesson(index) {
 }
 
 // ---------- Init ----------
-const API_BASE = "https://christnow-backend-777aa5f9a483.herokuapp.com";
 
 function normalizeId(x) {
   if (x == null) return "";
@@ -233,7 +272,7 @@ function idInList(id, list) {
 }
 
 async function userOwnsCourse(courseId, token) {
-  const res = await fetch(`${API_BASE}/api/users/profile`, {
+  const res = await fetch(`${API_BASE}/users/profile`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   if (!res.ok) return false;
@@ -257,7 +296,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const token = localStorage.getItem('token');
+  const token = getToken();
   if (!token) {
     if (lessonContent) {
       lessonContent.innerHTML =
@@ -277,7 +316,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   fetch(`${API_BASE}/lessons/by-course/${courseId}`, {
-    headers: { 'Authorization': `Bearer ${token}` }
+    headers: authHeaders()
   })
     .then(res => res.json())
     .then(lessons => {

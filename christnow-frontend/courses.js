@@ -21,7 +21,7 @@ function getButtonLabel(course, user) {
   const freeIds = user.freeCourseIds || [];
 
   if (idInList(course.id, ownedIds) || idInList(course.id, freeIds)) {
-    return "You Own This Course";
+    return "Owned";
   }
 
   if (freeIds.length < FREE_PICK_LIMIT) {
@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const buttonLabel = getButtonLabel(course, user);
       const buttonClass = getButtonClass(buttonLabel);
-      const disabled = buttonLabel === "You Own This Course" ? "disabled" : "";
+      const disabled = buttonLabel === "Owned" ? "disabled" : "";
 
       card.innerHTML = `
   <h3>${course.title}</h3>

@@ -78,7 +78,8 @@
 <body>
   <div class="admin-wrap">
     <h1>Admin Panel</h1>
-    <p class="subtitle">Manage courses at scale — upload a spreadsheet or JSON backup. Signed in as <span id="admin-email">loading...</span>.</p>
+    <p class="subtitle">Manage courses — signed in as <span id="admin-email">loading...</span> <span class="meta">(panel v4)</span></p>
+    <p id="admin-status" class="subtitle" style="margin-top:-24px; font-size:14px;"></p>
 
     <div class="admin-card">
       <h2>Bulk Import (CSV or JSON)</h2>
@@ -159,21 +160,33 @@
   </div>
 
   <script>
-    const API_BASE = "https://christnow-backend-777aa5f9a483.herokuapp.com";
-    const token = localStorage.getItem("token");
+    const API_BASE = "/api";
 
-    if (!token) {
+    function authToken() {
+      return localStorage.getItem("token");
+    }
+
+    function authHeaders(extra = {}) {
+      const token = authToken();
+      return {
+        ...extra,
+        Authorization: token ? `Bearer ${token}` : ""
+      };
+    }
+
+    if (!authToken()) {
       window.location.href = "sign-in.html?next=admin.html";
     }
 
     let isAdmin = false;
     let coursesEmpty = false;
+    let profileData = null;
 
     (async () => {
       try {
         const [profileRes, coursesRes] = await Promise.all([
-          fetch(`${API_BASE}/api/users/profile`, {
-            headers: { Authorization: `Bearer ${token}` }
+          fetch(`${API_BASE}/users/profile`, {
+            headers: authHeaders()
           }),
           fetch(`${API_BASE}/courses`)
         ]);
@@ -181,6 +194,7 @@
         let profile = null;
         if (profileRes.ok) {
           profile = await profileRes.json();
+          profileData = profile;
           document.getElementById("admin-email").textContent = profile.email || "(unknown)";
         } else {
           document.getElementById("admin-email").textContent = "(profile load failed)";
@@ -193,6 +207,19 @@
 
         isAdmin = profile?.admin === true;
         const canAccess = isAdmin || coursesEmpty;
+        const statusEl = document.getElementById("admin-status");
+
+        if (statusEl && profile) {
+          if (profile.isConfiguredAdmin) {
+            statusEl.textContent = "Admin access OK for " + (profile.email || "your account") + ".";
+            statusEl.style.color = "#2e7d32";
+          } else {
+            statusEl.textContent = profile.adminHint
+              || ("Admin mismatch. Heroku env loaded: " + (profile.adminConfigured ? "yes" : "NO")
+                + ". Set CHRISTNOW_ADMIN_EMAIL to " + (profile.email || "your sign-in email") + ".");
+            statusEl.style.color = "#c62828";
+          }
+        }
 
         if (!canAccess) {
           document.querySelector(".admin-wrap").innerHTML =
@@ -240,10 +267,7 @@
       try {
         const res = await fetch(`${API_BASE}/courses`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
+          headers: authHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify(body)
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -277,10 +301,7 @@
       try {
         const res = await fetch(`${API_BASE}/lessons`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
+          headers: authHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify(body)
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -393,10 +414,7 @@
           `${API_BASE}/courses/import?skipDuplicates=${skipDuplicates}`,
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`
-            },
+            headers: authHeaders({ "Content-Type": "application/json" }),
             body: JSON.stringify(courses)
           }
         );
@@ -441,7 +459,7 @@
 
       try {
         const res = await fetch(`${API_BASE}/courses/export`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: authHeaders()
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
@@ -488,13 +506,23 @@
 
               btn.disabled = true;
               try {
-                const res = await fetch(`${API_BASE}/courses/${courseId}`, {
-                  method: "DELETE",
-                  headers: { Authorization: `Bearer ${token}` }
+                if (!authToken()) {
+                  window.location.href = "sign-in.html?next=admin.html";
+                  return;
+                }
+                const res = await fetch(`${API_BASE}/lessons/delete-course/${courseId}`, {
+                  method: "POST",
+                  headers: authHeaders()
                 });
                 if (!res.ok) {
-                  const msg = await res.text();
-                  throw new Error(msg || `HTTP ${res.status}`);
+                  const raw = (await res.text()).trim();
+                  if (res.status === 401) {
+                    throw new Error("Session expired — sign out and sign in again, then retry.");
+                  }
+                  if (res.status === 403) {
+                    throw new Error(raw || "403 Forbidden — admin access required.");
+                  }
+                  throw new Error(raw || `HTTP ${res.status}`);
                 }
                 loadCourses();
               } catch (err) {
