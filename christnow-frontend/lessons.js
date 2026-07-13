@@ -3,6 +3,7 @@ let currentLessonIndex = 0;
 let progressTimer = null;
 let vimeoPlayer = null;
 let canMarkComplete = false;
+let currentCourseId = null;
 
 const API_BASE = "/api";
 
@@ -30,11 +31,15 @@ function reflectionApiUrl(lessonId) {
 }
 
 // ---------- Storage ----------
+function completedStorageKey() {
+  return currentCourseId ? `completedLessons_${currentCourseId}` : 'completedLessons';
+}
+
 function getCompleted() {
-  return JSON.parse(localStorage.getItem('completedLessons') || '[]');
+  return JSON.parse(localStorage.getItem(completedStorageKey()) || '[]');
 }
 function setCompleted(arr) {
-  localStorage.setItem('completedLessons', JSON.stringify(arr));
+  localStorage.setItem(completedStorageKey(), JSON.stringify(arr));
 }
 function percent(n, d) {
   return d > 0 ? (n / d) * 100 : 0;
@@ -88,6 +93,9 @@ async function markLessonComplete(lessonId) {
         method: 'POST',
         headers: authHeaders()
       });
+      if (!res.ok) {
+        throw new Error('Failed to mark lesson complete: ' + res.status);
+      }
       completed.push(lessonId);
       setCompleted(completed);
       renderSidebar();
@@ -95,6 +103,23 @@ async function markLessonComplete(lessonId) {
     } catch (err) {
       console.error('Error marking complete', err);
     }
+  }
+}
+
+async function loadCompletedLessons(courseId) {
+  try {
+    const res = await fetch(`${API_BASE}/users/courses/${courseId}/completed-lessons`, {
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      return;
+    }
+    const completedIds = await res.json();
+    if (Array.isArray(completedIds)) {
+      setCompleted(completedIds);
+    }
+  } catch (err) {
+    console.error('Error loading completed lessons', err);
   }
 }
 
@@ -287,8 +312,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const courseId = params.get('courseId');
   const lessonContent = document.getElementById('lesson-content');
 
-  localStorage.removeItem('completedLessons');
-
   if (!courseId) {
     if (lessonContent) {
       lessonContent.innerHTML = "<p style='color:red;'>No course selected.</p>";
@@ -315,23 +338,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  fetch(`${API_BASE}/lessons/by-course/${courseId}`, {
-    headers: authHeaders()
-  })
-    .then(res => res.json())
-    .then(lessons => {
-      lessonsData = lessons || [];
-      renderSidebar();
-      if (lessonsData.length > 0) {
-        showLesson(0);
-      } else if (lessonContent) {
-        lessonContent.innerHTML = "<p>No lessons found.</p>";
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      if (lessonContent) {
-        lessonContent.innerHTML = "<p style='color:red;'>Could not load lessons.</p>";
-      }
-    });
+  currentCourseId = courseId;
+
+  try {
+    const [lessonsRes] = await Promise.all([
+      fetch(`${API_BASE}/lessons/by-course/${courseId}`, { headers: authHeaders() }),
+      loadCompletedLessons(courseId)
+    ]);
+
+    const lessons = await lessonsRes.json();
+    lessonsData = lessons || [];
+    renderSidebar();
+
+    if (lessonsData.length > 0) {
+      const completed = getCompleted();
+      const firstUnlockedIndex = lessonsData.findIndex((lesson, i) =>
+        !isLocked(i) && !completed.includes(lesson.id)
+      );
+      const startIndex = firstUnlockedIndex >= 0 ? firstUnlockedIndex : 0;
+      showLesson(startIndex);
+    } else if (lessonContent) {
+      lessonContent.innerHTML = "<p>No lessons found.</p>";
+    }
+  } catch (err) {
+    console.error(err);
+    if (lessonContent) {
+      lessonContent.innerHTML = "<p style='color:red;'>Could not load lessons.</p>";
+    }
+  }
 });
