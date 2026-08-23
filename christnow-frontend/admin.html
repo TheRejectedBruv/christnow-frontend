@@ -73,6 +73,33 @@
     .import-help code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
     .import-results { margin-top: 12px; font-size: 13px; max-height: 200px; overflow-y: auto; background: #f9f9f9; border-radius: 6px; padding: 10px; }
     .import-results li { margin-bottom: 4px; }
+    .admin-stats-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .admin-stat {
+      flex: 1;
+      background: linear-gradient(135deg, #faf6ff 0%, #fff 100%);
+      border: 1px solid #e1d5ef;
+      border-radius: 10px;
+      padding: 18px 22px;
+      box-shadow: 0 1px 4px rgba(123, 31, 162, 0.06);
+    }
+    .admin-stat-value {
+      display: block;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #7B1FA2;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+    .admin-stat-label {
+      display: block;
+      font-size: 0.9rem;
+      color: #666;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
@@ -80,6 +107,13 @@
     <h1>Admin Panel</h1>
     <p class="subtitle">Manage courses — signed in as <span id="admin-email">loading...</span> <span class="meta">(panel v4)</span></p>
     <p id="admin-status" class="subtitle" style="margin-top:-24px; font-size:14px;"></p>
+
+    <div id="admin-stats-bar" class="admin-stats-bar" hidden>
+      <div class="admin-stat">
+        <span class="admin-stat-value" id="stat-total-users">—</span>
+        <span class="admin-stat-label">Registered users</span>
+      </div>
+    </div>
 
     <div class="admin-card">
       <h2>Bulk Import (CSV or JSON)</h2>
@@ -237,6 +271,10 @@
               `Bootstrap mode — database is empty, so any signed-in user can import once. Signed in as ${profile?.email || "unknown"}.`;
           }
         }
+
+        if (isAdmin) {
+          await loadAdminStats();
+        }
       } catch (e) {
         document.getElementById("admin-email").textContent = "(profile load failed)";
         document.querySelector(".admin-wrap").innerHTML =
@@ -246,6 +284,24 @@
 
       initAdminPanel();
     })();
+
+    async function loadAdminStats() {
+      try {
+        const res = await fetch(`${API_BASE}/users/admin/stats`, {
+          headers: authHeaders()
+        });
+        if (!res.ok) return;
+        const stats = await res.json();
+        const bar = document.getElementById("admin-stats-bar");
+        const valueEl = document.getElementById("stat-total-users");
+        if (bar && valueEl && stats.totalUsers != null) {
+          valueEl.textContent = stats.totalUsers;
+          bar.hidden = false;
+        }
+      } catch (e) {
+        console.error("Could not load admin stats", e);
+      }
+    }
 
     function initAdminPanel() {
     const courseForm = document.getElementById("course-form");
