@@ -108,9 +108,9 @@
     <p class="subtitle">Manage courses — signed in as <span id="admin-email">loading...</span> <span class="meta">(panel v4)</span></p>
     <p id="admin-status" class="subtitle" style="margin-top:-24px; font-size:14px;"></p>
 
-    <div id="admin-stats-bar" class="admin-stats-bar" hidden>
+    <div id="admin-stats-bar" class="admin-stats-bar" style="display:none;">
       <div class="admin-stat">
-        <span class="admin-stat-value" id="stat-total-users">—</span>
+        <span class="admin-stat-value" id="stat-total-users">…</span>
         <span class="admin-stat-label">Registered users</span>
       </div>
     </div>
@@ -272,7 +272,8 @@
           }
         }
 
-        if (isAdmin) {
+        if (profile?.isConfiguredAdmin || isAdmin) {
+          showAdminStatsBar();
           await loadAdminStats();
         }
       } catch (e) {
@@ -285,21 +286,44 @@
       initAdminPanel();
     })();
 
+    function showAdminStatsBar() {
+      const bar = document.getElementById("admin-stats-bar");
+      if (bar) bar.style.display = "flex";
+    }
+
     async function loadAdminStats() {
+      const valueEl = document.getElementById("stat-total-users");
+      const statusEl = document.getElementById("admin-status");
       try {
         const res = await fetch(`${API_BASE}/users/admin/stats`, {
           headers: authHeaders()
         });
-        if (!res.ok) return;
+        if (!res.ok) {
+          const msg = await res.text();
+          if (valueEl) valueEl.textContent = "—";
+          if (statusEl && res.status === 403) {
+            statusEl.textContent = "User count unavailable — admin email mismatch on server.";
+            statusEl.style.color = "#c62828";
+          } else if (statusEl && res.status === 404) {
+            statusEl.textContent = "User count unavailable — redeploy the Heroku backend.";
+            statusEl.style.color = "#c62828";
+          } else if (statusEl) {
+            statusEl.textContent = `User count unavailable (${res.status}): ${msg.slice(0, 120)}`;
+            statusEl.style.color = "#c62828";
+          }
+          return;
+        }
         const stats = await res.json();
-        const bar = document.getElementById("admin-stats-bar");
-        const valueEl = document.getElementById("stat-total-users");
-        if (bar && valueEl && stats.totalUsers != null) {
+        if (valueEl && stats.totalUsers != null) {
           valueEl.textContent = stats.totalUsers;
-          bar.hidden = false;
         }
       } catch (e) {
         console.error("Could not load admin stats", e);
+        if (valueEl) valueEl.textContent = "—";
+        if (statusEl) {
+          statusEl.textContent = "User count unavailable — could not reach the server.";
+          statusEl.style.color = "#c62828";
+        }
       }
     }
 
