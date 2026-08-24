@@ -343,6 +343,65 @@ button:disabled {
   cursor: default;
 }
 
+@media (max-width: 768px) {
+  #course-layout {
+    flex-direction: column;
+  }
+
+  #lesson-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 2px solid #e5d1ff;
+    padding: 16px;
+  }
+
+  #lesson-list {
+    max-height: 240px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #lesson-list li {
+    font-size: 0.95em;
+    padding: 10px 12px;
+  }
+
+  #lesson-main {
+    padding: 16px;
+  }
+
+  #progress {
+    font-size: 0.95em;
+    line-height: 1.4;
+  }
+
+  #lesson-content h2 {
+    font-size: 1.35rem;
+    line-height: 1.3;
+    margin-bottom: 12px;
+  }
+
+  #lesson-content button,
+  #mark-complete-btn,
+  #save-reflection-btn {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 8px 0;
+  }
+
+  #reflection-status {
+    display: block;
+    margin-left: 0;
+    margin-top: 8px;
+  }
+
+  .lesson-back-btn {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+  }
+}
+
 /* === Sign In Page Overrides (add at END of styles.css) === */
 .form-container {
   max-width: 410px;
@@ -1025,3 +1084,115 @@ main.home {
   letter-spacing: 0.02em;
 }
 
+/* ====== ChristNow Mobile (phones & small tablets only) ====== */
+@media (max-width: 768px) {
+  .navbar {
+    height: auto;
+    min-height: 64px;
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .logo {
+    height: 56px;
+    width: 56px;
+  }
+
+  .logo img {
+    height: 44px;
+    transform: scale(1.1);
+  }
+
+  .nav-links {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 14px;
+  }
+
+  .nav-links a {
+    margin-left: 0 !important;
+    line-height: 1.4 !important;
+    padding: 4px 6px !important;
+    font-size: 0.92rem !important;
+  }
+
+  #sign-in-link {
+    margin-top: 0 !important;
+  }
+
+  .course-list {
+    padding: 24px 12px;
+    gap: 24px;
+  }
+
+  .course-card {
+    width: 100%;
+    max-width: 400px;
+    min-height: auto;
+    padding: 22px 18px;
+  }
+
+  .course-detail-card {
+    margin: 12px auto 0;
+    padding: 20px 16px 28px;
+    border-radius: 12px;
+  }
+
+  .course-title {
+    font-size: 1.55rem;
+  }
+
+  .course-description {
+    font-size: 1rem;
+  }
+
+  .start-button {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px 20px;
+  }
+
+  .lessons,
+  .course-features,
+  .instructor-info {
+    max-width: 100%;
+  }
+
+  .testimonials-section {
+    margin-top: 32px;
+    padding: 0 14px;
+  }
+
+  .testimonials-title {
+    font-size: 1.6rem;
+  }
+
+  .testimonial-card {
+    padding: 20px 18px 16px;
+  }
+
+  .testimonials-share {
+    padding: 24px 18px;
+    margin-bottom: 40px;
+  }
+
+  .home h1,
+  h1.welcome-title {
+    margin-top: 40px !important;
+    font-size: 1.75rem !important;
+    padding: 0 12px;
+  }
+
+  .verse,
+  .verse-ref {
+    padding: 0 16px;
+  }
+
+  #video-host,
+  #video-host > div {
+    width: 100%;
+  }
+}
