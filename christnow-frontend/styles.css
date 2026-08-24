@@ -517,7 +517,7 @@ button:disabled {
   border-color: #7B1FA2;
 }
 
-#signin-form button {
+#signin-form button[type="submit"] {
   background: #7B1FA2;
   color: #fff;
   border: none;
@@ -533,7 +533,7 @@ button:disabled {
   box-shadow: 0 2px 6px rgba(123,31,162,0.05);
 }
 
-#signin-form button:hover {
+#signin-form button[type="submit"]:hover {
   background: #5e1587;
 }
 
@@ -567,6 +567,8 @@ button:disabled {
 }
 
 .password-field input {
+  width: 100%;
+  box-sizing: border-box;
   padding-right: 76px;
 }
 
@@ -575,6 +577,8 @@ button:disabled {
   right: 6px;
   top: 50%;
   transform: translateY(-50%);
+  width: auto;
+  margin-top: 0;
   border: none;
   background: transparent;
   color: #7B1FA2;
@@ -587,10 +591,13 @@ button:disabled {
   min-height: 44px;
   border-radius: 6px;
   line-height: 1;
+  box-shadow: none;
+  letter-spacing: 0;
 }
 
 .password-toggle:hover {
   background: #f0e9ff;
+  color: #5e1587;
 }
 
 .password-toggle:focus {
@@ -638,8 +645,8 @@ button:disabled {
   border-color: #7B1FA2;
 }
 
-#signup-form button,
-#signin-form button {
+#signup-form button[type="submit"],
+#signin-form button[type="submit"] {
   background: #7B1FA2;
   color: #fff;
   border: none;
@@ -655,8 +662,8 @@ button:disabled {
   box-shadow: 0 2px 6px rgba(123,31,162,0.05);
 }
 
-#signup-form button:hover,
-#signin-form button:hover {
+#signup-form button[type="submit"]:hover,
+#signin-form button[type="submit"]:hover {
   background: #5e1587;
 }
 
