@@ -327,6 +327,38 @@ section.login button[type="submit"]:hover {
   background: #e0ffe0;
   border: 1.5px solid #a8e0a8;
 }
+
+.video-embed {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #111;
+}
+
+.video-embed iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.lesson-actions {
+  margin: 8px 0 4px;
+}
+
+.reflection-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
 textarea {
   width: 98%;
   min-height: 50px;
@@ -381,18 +413,58 @@ button:disabled {
     margin-bottom: 12px;
   }
 
+  .video-embed {
+    padding-top: 0;
+    aspect-ratio: 9 / 16;
+    max-height: min(78vh, 760px);
+    min-height: 440px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+  }
+
+  .lesson-actions {
+    margin: 20px 0 8px;
+  }
+
   #lesson-content button,
   #mark-complete-btn,
   #save-reflection-btn {
     width: 100%;
     box-sizing: border-box;
-    margin: 8px 0;
+    margin: 0;
+    min-height: 50px;
+    font-size: 1.05rem;
+    padding: 14px 20px;
+    border-radius: 10px;
+  }
+
+  .reflection-section {
+    margin-top: 28px;
+    padding-top: 20px;
+  }
+
+  .reflection-section textarea#reflection {
+    min-height: 120px;
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .reflection-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-top: 16px;
   }
 
   #reflection-status {
     display: block;
     margin-left: 0;
-    margin-top: 8px;
+    margin-top: 0;
+    text-align: center;
+  }
+
+  #lesson-list li {
+    min-height: 44px;
   }
 
   .lesson-back-btn {
@@ -1192,7 +1264,8 @@ main.home {
   }
 
   #video-host,
-  #video-host > div {
+  #video-host > div,
+  #video-host .video-embed {
     width: 100%;
   }
 }

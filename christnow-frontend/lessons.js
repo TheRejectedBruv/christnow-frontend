@@ -4,6 +4,7 @@ let progressTimer = null;
 let vimeoPlayer = null;
 let canMarkComplete = false;
 let currentCourseId = null;
+let completedLessonIds = [];
 
 const API_BASE = "/api";
 
@@ -31,23 +32,65 @@ function reflectionApiUrl(lessonId) {
 }
 
 // ---------- Storage ----------
-function completedStorageKey() {
-  return currentCourseId ? `completedLessons_${currentCourseId}` : 'completedLessons';
+function completedStorageKey(courseId = currentCourseId) {
+  return courseId ? `completedLessons_${courseId}` : 'completedLessons';
 }
 
 function getCompleted() {
-  return JSON.parse(localStorage.getItem(completedStorageKey()) || '[]');
+  return completedLessonIds.slice();
 }
+
 function setCompleted(arr) {
-  localStorage.setItem(completedStorageKey(), JSON.stringify(arr));
+  completedLessonIds = (Array.isArray(arr) ? arr : []).map(normalizeId);
+  if (currentCourseId) {
+    localStorage.setItem(completedStorageKey(), JSON.stringify(completedLessonIds));
+  }
+}
+
+function loadCompletedFromStorage(courseId) {
+  const stored = localStorage.getItem(completedStorageKey(courseId));
+  if (!stored) {
+    const legacy = localStorage.getItem('completedLessons');
+    if (legacy) {
+      try {
+        const parsed = JSON.parse(legacy);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          completedLessonIds = parsed.map(normalizeId);
+          localStorage.setItem(completedStorageKey(courseId), JSON.stringify(completedLessonIds));
+          return;
+        }
+      } catch (e) {
+        console.error('Could not parse legacy completed lessons', e);
+      }
+    }
+    completedLessonIds = [];
+    return;
+  }
+  try {
+    completedLessonIds = JSON.parse(stored).map(normalizeId);
+  } catch (e) {
+    console.error('Could not parse completed lessons', e);
+    completedLessonIds = [];
+  }
+}
+
+function mergeCompletedIds(...lists) {
+  const merged = new Set();
+  lists.forEach((list) => {
+    (Array.isArray(list) ? list : []).forEach((id) => merged.add(normalizeId(id)));
+  });
+  setCompleted([...merged]);
+}
+
+function isLessonCompleted(lessonId) {
+  return idInList(lessonId, completedLessonIds);
 }
 function percent(n, d) {
   return d > 0 ? (n / d) * 100 : 0;
 }
 function isLocked(i) {
   if (i === 0) return false;
-  const completed = getCompleted();
-  return !completed.includes(lessonsData[i - 1].id);
+  return !isLessonCompleted(lessonsData[i - 1].id);
 }
 
 // ---------- Sidebar ----------
@@ -59,15 +102,16 @@ function renderSidebar() {
 
   lessonsData.forEach((lesson, i) => {
     const locked = isLocked(i);
+    const done = isLessonCompleted(lesson.id);
     let liClass = '';
     if (i === currentLessonIndex) liClass += 'active ';
-    if (completed.includes(lesson.id)) liClass += 'completed ';
+    if (done) liClass += 'completed ';
     if (locked) liClass += 'locked ';
 
     ul.innerHTML += `
       <li class="${liClass.trim()}" ${locked ? '' : `onclick="showLesson(${i})"`}>
         <span>${lesson.title}</span>
-        ${completed.includes(lesson.id) ? '✅' : locked ? '🔒' : ''}
+        ${done ? '✅' : locked ? '🔒' : ''}
       </li>
     `;
   });
@@ -85,28 +129,28 @@ function updateProgress(pctWatched = null) {
 }
 
 async function markLessonComplete(lessonId) {
-  if (!canMarkComplete) return;
-  const completed = getCompleted();
-  if (!completed.includes(lessonId)) {
-    try {
-      const res = await fetch(`${API_BASE}/lessons/${lessonId}/complete`, {
-        method: 'POST',
-        headers: authHeaders()
-      });
-      if (!res.ok) {
-        throw new Error('Failed to mark lesson complete: ' + res.status);
-      }
-      completed.push(lessonId);
-      setCompleted(completed);
-      renderSidebar();
-      updateProgress();
-    } catch (err) {
-      console.error('Error marking complete', err);
+  if (!canMarkComplete || isLessonCompleted(lessonId)) return;
+
+  const previous = getCompleted();
+  mergeCompletedIds(previous, [lessonId]);
+  renderSidebar();
+  updateProgress();
+
+  try {
+    const res = await fetch(`${API_BASE}/lessons/${lessonId}/complete`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      throw new Error('Failed to mark lesson complete: ' + res.status);
     }
+  } catch (err) {
+    console.error('Error marking complete on server (saved on this device)', err);
   }
 }
 
 async function loadCompletedLessons(courseId) {
+  const localCompleted = getCompleted();
   try {
     const res = await fetch(`${API_BASE}/users/courses/${courseId}/completed-lessons`, {
       headers: authHeaders()
@@ -116,7 +160,7 @@ async function loadCompletedLessons(courseId) {
     }
     const completedIds = await res.json();
     if (Array.isArray(completedIds)) {
-      setCompleted(completedIds);
+      mergeCompletedIds(localCompleted, completedIds);
     }
   } catch (err) {
     console.error('Error loading completed lessons', err);
@@ -219,7 +263,7 @@ function setupVimeoTracking(iframeId, lessonId) {
     const pct = percent(cur, dur);
     updateProgress(pct);
 
-    if (pct >= 90 && !getCompleted().includes(lessonId)) {
+    if (pct >= 90 && !isLessonCompleted(lessonId)) {
       canMarkComplete = true;
       const completeBtn = document.getElementById('mark-complete-btn');
       if (completeBtn) {
@@ -244,11 +288,13 @@ function showLesson(index) {
   content.innerHTML = `
     <h2>${lesson.title}</h2>
     <div id="video-host"></div>
-    <button id="mark-complete-btn" disabled>Mark as Complete</button>
-       <div class="reflection-section">
+    <div class="lesson-actions">
+      <button id="mark-complete-btn" disabled>Mark as Complete</button>
+    </div>
+    <div class="reflection-section">
       <h3>Your Reflection</h3>
       <textarea id="reflection" rows="6" placeholder="Write your private reflection on this lesson..."></textarea>
-      <div>
+      <div class="reflection-actions">
         <button id="save-reflection-btn">Save Reflection</button>
         <span id="reflection-status"></span>
       </div>
@@ -259,21 +305,15 @@ function showLesson(index) {
   document.getElementById('save-reflection-btn').onclick = () => saveReflection(lesson.id);
   loadReflection(lesson.id);
 
-
-
-  
-  document.getElementById('mark-complete-btn').onclick = () => markLessonComplete(lesson.id);
-
   const host = document.getElementById('video-host');
   if (isVimeo) {
     let vimeoId = url.split('/').pop();
     const iframeId = 'vimeo-player-' + lesson.id;
     host.innerHTML = `
-      <div style="position:relative; padding-top:56.25%;">
+      <div class="video-embed">
         <iframe id="${iframeId}" src="https://player.vimeo.com/video/${vimeoId}"
-          frameborder="0" allow="autoplay; fullscreen; picture-in-picture"
-          allowfullscreen
-          style="position:absolute; top:0; left:0; width:100%; height:100%;"></iframe>
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen></iframe>
       </div>
     `;
     setupVimeoTracking(iframeId, lesson.id);
@@ -294,6 +334,52 @@ function normalizeId(x) {
 
 function idInList(id, list) {
   return (Array.isArray(list) ? list : []).map(normalizeId).includes(normalizeId(id));
+}
+
+function setupBackButton(courseId) {
+  const backEl = document.getElementById('lesson-back');
+  if (!backEl) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const from = (params.get('from') || '').toLowerCase();
+  let backUrl = '';
+  let backLabel = 'Back';
+
+  if (from === 'profile') {
+    backUrl = 'profile.html';
+    backLabel = 'Back to Profile';
+  } else if (from === 'course' || from === 'course-details') {
+    backUrl = `course-details.html?id=${encodeURIComponent(courseId)}`;
+    backLabel = 'Back to Course';
+  } else {
+    try {
+      const ref = document.referrer;
+      if (ref) {
+        const refUrl = new URL(ref);
+        const refPath = refUrl.pathname.toLowerCase();
+        if (refPath.endsWith('/profile.html') || refPath.endsWith('profile.html')) {
+          backUrl = 'profile.html';
+          backLabel = 'Back to Profile';
+        } else if (refPath.endsWith('/course-details.html') || refPath.endsWith('course-details.html')) {
+          backUrl = `course-details.html${refUrl.search}`;
+          backLabel = 'Back to Course';
+        }
+      }
+    } catch (err) {
+      console.error('Could not parse referrer for back navigation', err);
+    }
+  }
+
+  if (!backUrl) {
+    backUrl = `course-details.html?id=${encodeURIComponent(courseId)}`;
+    backLabel = 'Back to Course';
+  }
+
+  backEl.href = backUrl;
+  const labelEl = backEl.querySelector('.lesson-back-label');
+  if (labelEl) {
+    labelEl.textContent = backLabel;
+  }
 }
 
 async function userOwnsCourse(courseId, token) {
@@ -339,6 +425,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   currentCourseId = courseId;
+  setupBackButton(courseId);
+  loadCompletedFromStorage(courseId);
 
   try {
     const [lessonsRes] = await Promise.all([
@@ -351,9 +439,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderSidebar();
 
     if (lessonsData.length > 0) {
-      const completed = getCompleted();
       const firstUnlockedIndex = lessonsData.findIndex((lesson, i) =>
-        !isLocked(i) && !completed.includes(lesson.id)
+        !isLocked(i) && !isLessonCompleted(lesson.id)
       );
       const startIndex = firstUnlockedIndex >= 0 ? firstUnlockedIndex : 0;
       showLesson(startIndex);
