@@ -27,7 +27,10 @@
     <form id="signup-form" class="auth-form" autocomplete="off">
       <input type="text" id="signup-username" name="signup-username" placeholder="Username" autocomplete="off" autocapitalize="off" spellcheck="false" required />
       <input type="email" id="signup-email" name="signup-email" placeholder="Email" autocomplete="off" required />
-      <input type="password" id="signup-password" name="signup-password" placeholder="Password" autocomplete="new-password" required />
+      <div class="password-field">
+        <input type="password" id="signup-password" name="signup-password" placeholder="Password" autocomplete="new-password" required />
+        <button type="button" class="password-toggle" data-password-toggle aria-controls="signup-password" aria-label="Show password" aria-pressed="false">Show</button>
+      </div>
       <button type="submit">Sign Up</button>
     </form>
     <p id="signup-message" class="response-message"></p>
@@ -36,6 +39,7 @@
 
   <!-- ✅ Make sure this is at the BOTTOM of the body -->
    <script src="nav-auth.js"></script>
+  <script src="password-toggle.js"></script>
   <script src="signup.js"></script>
 </body>
 </html>
