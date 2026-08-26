@@ -2,7 +2,7 @@
 document.addEventListener("DOMContentLoaded", async function () {
   console.log("HOMEPAGE: script loaded");
 
-
+  const FREE_PICK_LIMIT = 1;
   const API_BASE = "https://christnow-backend-777aa5f9a483.herokuapp.com";
 
 
@@ -58,9 +58,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         const freeCounter = document.getElementById("free-counter");
         if (freeCounter && userProfile) {
           const freeCount = Array.isArray(userProfile.freeCourseIds) ? userProfile.freeCourseIds.length : 0;
-          const remaining = 3 - freeCount;
+          const remaining = FREE_PICK_LIMIT - freeCount;
           if (remaining > 0) {
-            freeCounter.textContent = `You have ${remaining} free course${remaining === 1 ? "" : "s"} remaining`;
+            freeCounter.textContent = "Choose any 1 course free — the rest are paid";
             freeCounter.style.display = "block";
           } else {
             freeCounter.textContent = "";
@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 
       const ownsThis = idInList(course.id, ownedIds) || idInList(course.id, freeIds);
-      const hasFreeSlot = !ownsThis && freeIds.length < 3;
+      const hasFreeSlot = !ownsThis && freeIds.length < FREE_PICK_LIMIT;
 
 
       console.log(
@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (ownsThis) {
         actionBtnHtml = `<button class="owned-btn" disabled>Owned</button>`;
       } else if (hasFreeSlot) {
-        actionBtnHtml = `<button class="add-free-btn" data-course-id="${course.id}">Add as Free</button>`;
+        actionBtnHtml = `<button class="add-free-btn" data-course-id="${course.id}">Claim Free</button>`;
       } else {
         actionBtnHtml = `<button class="buy-btn" data-course-id="${course.id}" data-course-title="${course.title.replace(/"/g, "&quot;")}" data-course-price="${course.price}">Buy Course</button>`;
       }

@@ -176,7 +176,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // price / free label
   if (course.free) {
-    if (freeLabelEl) freeLabelEl.textContent = "Free (counts as 1 of your 3 free courses)";
+    if (freeLabelEl) freeLabelEl.textContent = "Available as your free course";
     if (oldPriceEl) oldPriceEl.textContent = "";
   } else if (course.price != null) {
     if (oldPriceEl) oldPriceEl.textContent = `$${Number(course.price).toFixed(2)}`;
@@ -207,7 +207,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     } else {
       lessons.forEach((lesson, index) => {
         const li = document.createElement("li");
-       li.innerHTML = `<a href="lessons.html?courseId=${course.id}" style="text-decoration:none; color:inherit; cursor:pointer;">${lesson.title || "Lesson"}</a>`;
+       li.innerHTML = `<a href="lessons.html?courseId=${encodeURIComponent(course.id)}&from=course" style="text-decoration:none; color:inherit; cursor:pointer;">${lesson.title || "Lesson"}</a>`;
         lessonsListEl.appendChild(li);
       });
     }
@@ -284,31 +284,31 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 
   // ---------- compute ownership ----------
+  const FREE_PICK_LIMIT = 1;
   const ownedIds = Array.isArray(userProfile.ownedCourseIds) ? userProfile.ownedCourseIds : [];
   const freeIds = Array.isArray(userProfile.freeCourseIds) ? userProfile.freeCourseIds : [];
 
 
   const ownsThis = idInList(course.id, ownedIds) || idInList(course.id, freeIds);
-  const hasFreeSlot = !ownsThis && freeIds.length < 3;
-  const remainingFreePicks = 3 - freeIds.length;
+  const hasFreeSlot = !ownsThis && freeIds.length < FREE_PICK_LIMIT;
 
 
   if (hasFreeSlot && freeLabelEl) {
-    freeLabelEl.textContent = `Use 1 of your ${remainingFreePicks} free pick${remainingFreePicks === 1 ? "" : "s"}`;
+    freeLabelEl.textContent = "Claim this as your free course";
   }
 
 
   // ---------- decide button state ----------
   if (ownsThis) {
     setButton("Start Course", false, function () {
-      window.location.href = `lessons.html?courseId=${encodeURIComponent(course.id)}`;
+      window.location.href = `lessons.html?courseId=${encodeURIComponent(course.id)}&from=course`;
     });
     return;
   }
 
 
   if (hasFreeSlot) {
-    setButton("Add as Free", false, async function () {
+    setButton("Claim Free", false, async function () {
       clearErrorOnPage();
 
 

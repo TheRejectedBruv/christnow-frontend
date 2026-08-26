@@ -1197,11 +1197,13 @@ main.home {
 .free-counter {
   text-align: center;
   font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
-  font-size: 1rem;
-  font-weight: 400;
-  color: #4a4a6a;
-  margin: 0 auto 20px auto;
-  letter-spacing: 0.02em;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #3d3d5c;
+  margin: 0 auto 24px auto;
+  letter-spacing: 0.01em;
+  max-width: 28rem;
+  line-height: 1.45;
 }
 
 /* ====== ChristNow Mobile (phones & small tablets only) ====== */

@@ -1,6 +1,6 @@
 console.log("[Courses] script loaded");
 
-const FREE_PICK_LIMIT = 3;
+const FREE_PICK_LIMIT = 1;
 const API_BASE = "/api";
 
 function normalizeId(x) {
@@ -25,14 +25,14 @@ function getButtonLabel(course, user) {
   }
 
   if (freeIds.length < FREE_PICK_LIMIT) {
-    return "Add as Free";
+    return "Claim Free";
   }
 
   return "Buy Course";
 }
 
 function getButtonClass(label) {
-  if (label === "Add as Free") return "add-free-btn";
+  if (label === "Claim Free") return "add-free-btn";
   if (label === "Buy Course") return "buy-btn";
   if (label === "Sign In to Access") return "sign-in-btn";
   return "owned-btn";
@@ -43,7 +43,7 @@ function updateFreeCounter(freeCounter, user) {
   const freeCount = Array.isArray(user.freeCourseIds) ? user.freeCourseIds.length : 0;
   const remaining = FREE_PICK_LIMIT - freeCount;
   if (remaining > 0) {
-    freeCounter.textContent = `You have ${remaining} free course${remaining === 1 ? "" : "s"} remaining`;
+    freeCounter.textContent = "Choose any 1 course free — the rest are paid";
     freeCounter.style.display = "block";
   } else {
     freeCounter.textContent = "";
