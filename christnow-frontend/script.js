@@ -54,6 +54,10 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (res.ok) {
         userProfile = await res.json();
         console.log("HOMEPAGE: userProfile =", userProfile);
+        const welcomeTitle = document.getElementById("welcome-back-title");
+        if (welcomeTitle && userProfile.username) {
+          welcomeTitle.textContent = "Welcome back, " + userProfile.username;
+        }
         // Show free counter if logged in
         const freeCounter = document.getElementById("free-counter");
         if (freeCounter && userProfile) {

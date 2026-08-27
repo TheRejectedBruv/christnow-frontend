@@ -15,6 +15,14 @@ document.addEventListener("DOMContentLoaded", () => {
     nav.insertBefore(profileLink, logoutLink);
   }
 
+  const landingGuest = document.getElementById("landing-guest");
+  const landingSignedIn = document.getElementById("landing-signed-in");
+  if (landingGuest && landingSignedIn) {
+    const signedIn = Boolean(token);
+    landingGuest.hidden = signedIn;
+    landingSignedIn.hidden = !signedIn;
+  }
+
   if (!signInLink || !logoutLink) return;
 
   if (token) {

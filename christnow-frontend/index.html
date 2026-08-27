@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ChristNow</title>
   <link rel="stylesheet" href="styles.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <header class="navbar">
@@ -19,14 +19,61 @@
     </nav>
   </header>
 
-  <main class="home">
-   <section class="courses">
-  <h2>Popular Courses</h2>
-  <p id="free-counter" class="free-counter" style="display: none;"></p>
-  <div class="course-list"></div>
-
-
+  <main class="home landing-home">
+    <section id="landing-guest" class="landing-guest">
+      <div class="landing-hero">
+        <h1 class="hero-title">Learn to walk with Christ — wherever you're starting from.</h1>
+        <p class="hero-lead">
+          Video courses that help you actually live out your faith. Whether you're new to following Jesus or years in and struggling, ChristNow gives you practical steps you can actually use this week.
+        </p>
+        <div class="hero-actions">
+          <a class="hero-cta" href="sign-up.html">Start with a free course</a>
+          <a class="hero-secondary" href="#courses">See courses</a>
+        </div>
       </div>
+
+      <section class="landing-audience" aria-labelledby="audience-heading">
+        <h2 id="audience-heading" class="landing-section-title">Who this is for</h2>
+        <div class="audience-grid">
+          <article class="audience-card">
+            <h3>New to faith</h3>
+            <p>Start at the very beginning. No church background needed and nothing assumed about what you already know.</p>
+          </article>
+          <article class="audience-card">
+            <h3>Already walking with Christ</h3>
+            <p>Keep your spiritual life strong. Honest help with temptation, dry seasons, and prayer gone routine.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="landing-steps" aria-labelledby="steps-heading">
+        <h2 id="steps-heading" class="landing-section-title">How it works</h2>
+        <ol class="steps-grid">
+          <li>
+            <span class="step-number">1</span>
+            <p>Create a free account</p>
+          </li>
+          <li>
+            <span class="step-number">2</span>
+            <p>Claim any one course free — no card required</p>
+          </li>
+          <li>
+            <span class="step-number">3</span>
+            <p>Add any other course for $14.99, yours to keep</p>
+          </li>
+        </ol>
+      </section>
+    </section>
+
+    <section id="landing-signed-in" class="landing-signed-in" hidden>
+      <h1 id="welcome-back-title" class="welcome-title">Welcome back</h1>
+      <p class="welcome-lead">Continue with a course below, or claim your free course if you haven’t yet.</p>
+    </section>
+
+    <section class="courses" id="courses">
+      <h2>Popular Courses</h2>
+      <p id="free-counter" class="free-counter" style="display: none;"></p>
+      <div class="course-list"></div>
     </section>
   </main>
 
