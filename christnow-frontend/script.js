@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   console.log("HOMEPAGE: script loaded");
 
   const FREE_PICK_LIMIT = 1;
-  const API_BASE = "https://christnow-backend-777aa5f9a483.herokuapp.com";
+  const API_BASE = "/api";
 
 
   const courseList = document.querySelector(".course-list");
@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       localStorage.setItem("token", token);
     }
     try {
-      const res = await fetch(`${API_BASE}/api/users/profile`, {
+      const res = await fetch(`${API_BASE}/users/profile`, {
         method: "GET",
         headers: { Authorization: "Bearer " + token },
       });
@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // ---------------- COURSES ----------------
   let courses = [];
   try {
-    const res = await fetch(`https://christnow-backend-777aa5f9a483.herokuapp.com/courses`);
+    const res = await fetch(`${API_BASE}/courses`);
     console.log("HOMEPAGE: /courses status =", res.status);
 
 
@@ -201,7 +201,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       try {
         const res = await fetch(
-          `${API_BASE}/api/users/${encodeURIComponent(userProfile.email)}/free-courses/${courseId}`,
+          `${API_BASE}/users/${encodeURIComponent(userProfile.email)}/free-courses/${courseId}`,
           {
             method: "POST",
             headers: {

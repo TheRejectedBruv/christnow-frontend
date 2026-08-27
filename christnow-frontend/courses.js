@@ -56,14 +56,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!list) return;
 
   try {
-    const res = await fetch("https://christnow-backend-777aa5f9a483.herokuapp.com/courses");
+    const res = await fetch(`${API_BASE}/courses`);
     if (!res.ok) throw new Error("Failed to load courses");
     const courses = await res.json();
 
     const token = localStorage.getItem("token");
     let user = null;
     if (token) {
-      const ures = await fetch("https://christnow-backend-777aa5f9a483.herokuapp.com/api/users/profile", {
+      const ures = await fetch(`${API_BASE}/users/profile`, {
         headers: { Authorization: "Bearer " + token }
       }).catch(() => null);
       if (ures && ures.ok) user = await ures.json();
